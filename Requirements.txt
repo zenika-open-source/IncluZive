@@ -1,0 +1,18 @@
+############### SPACY ########
+-U spacy
+https://github.com/explosion/spacy-models/releases/download/en_core_web_md-2.2.0/en_core_web_md-2.2.0.tar.gz
+prettytable
+# Install english corpus via: python -m spacy download en_core_web_sm
+# Install french corpus via: python3 -m spacy download fr_core_news_md
+# Install french corpus via: python -m spacy download fr_core_news_sm
+# Install french corpus via: python -m spacy download fr_core_news_lg
+
+############### FLAIR ########
+pytorch torchvision torchaudio cudatoolkit=11.0 -c pytorch
+torch==1.7.0
+flair
+
+############ OCR + OPENCV ########
+# Install tessaract via: https://github.com/UB-Mannheim/tesseract/wiki
+pytesseract
+opencv-python
