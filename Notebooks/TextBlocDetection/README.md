@@ -1,21 +1,13 @@
 # Scénario 2: Input sous format image
 
-Pour mieux expliquer le processus de détection des blocs de texte contenus dans une image, on a pris comme exemple d’input une image composée de 2 grands blocs, chacun est composé d’autres blocs contenant du texte.
-## a)	Détection des blocs de texte
+Comme PDFMiner permet d’extraire des informations à partir des documents PDF grâce à l’obtention de l’emplacement exact du texte dans une page, les lignes et l'analyse de données textuelles, on a utilisé cette bibliothèque en deuxième lieu.
 
-![](images/01_Input.png)
+![](images/01_pdfminer.png)
 
-Grâce à OpenCV, le prétraitement de l’imasge se répartit sur 2 étapes principales.
-Le 1er prétraitement consiste à éliminer les couleurs, les contours et le fond de l’image.
- 
-![](images/02_Etape_1_preprocessing.png)
+L’input est un CV sous format pdf.
+Pdfminer détectera donc les blocs de texte existants dans le CV. Puis il reconnaîtra le texte contenu dans ces blocs. 
+Nous avons opté pour la répartition du texte sur 2 partie : droite et gauche pour pouvoir manipuler le texte facilement, puis chaque partie est enregistrée dans un fichier texte .
 
-Le 2ème prétraitement consiste à la détection des objets –dans notre cas ce sont les mots- qui constituent le texte dans l’image. 
- 
-![](images/03_Etape_2_preprocessing.png)
+![](images/02_pdfminer_right.png)
 
-## b)	Reconnaissance de texte :
-Grâce à Pytessaract, chaque objet détecté a été converti en une chaîne de caractères.
-Remarque :  La détection des blocs de texte a abouti à une détection par ligne de texte et non par bloc.
- 
-![](images/04_Output.png)
+![](images/03_pdfminer_left.png)

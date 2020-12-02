@@ -44,6 +44,29 @@ Pour évaluer l’inférence du modèle spaCy, on a opté pour calculer la préc
 Le résultat de calcul de métriques n’est pas satisfaisant pour notre cas d’utilisation, que ce soit pour toutes les entités confondues ou bien pour chaque entité séparée.
 Cela pourrait être amélioré si on combine le modèle spaCy avec des plongements de mots en français (tel que CamemBERT, etc).
 
+### d) Ajout de nouvelles entités
+Le modèle Spacy permet d’ajouter de nouvelles entités. 
+Dans notre cas d’étude, l’adresse mail, l’URL du profil Linkedin et le numéro de téléphone sont considérés comme des données à caractère personnel. 
+C’est pour cela qu’on a besoin de détecter ces entités pour pouvoir les anonymiser dans l’étape qui suit.
+On a a pris comme exemple la phrase « Emma Louise s'est installée à Paris. Son adresse mail est emma.louise@google.com, son compte linkedin est https://www.linkedin.com/in/el-424781150/ et elle est joignable sur +33987609876. »
+Après avoir ajouté les nouvelles entités « EMAIL », « URL » et « TEL », le modèle a pu détecter « emma.louise@google.com » comme « EMAIL », « https://www.linkedin.com/in/el-424781150/ » comme « URL » et « +33987609876 » comme « TEL ». 
+ 
+![](images/07_Ajout_de_nouvelles_entités_Spacy.png)
+
+
+### e) Anonymisation des entités détectées
+Après avoir pu détecter les entités à anonymiser, la dernière étape consiste à les remplacer ces entités détectées par d’autres mots anonymes.
+On a pris comme exemple la même phrase précédente « Emma Louise s'est installée à Paris. Son adresse mail est emma.louise@google.com, son compte linkedin est https://www.linkedin.com/in/el-424781150/ et elle est joignable sur +33987609876. »
+On a choisi de remplacer tout mot détecté comme :
+-	 « PER » par le mot « REDACTED ». 
+-	« LOC » par le mot « REDACTEDLOC ». 
+-	« EMAIL » par le mot « REDACTEDEMAIL ». 
+-	« URL » par le mot « REDACTEDURL ». 
+-	« TEL » par le mot « REDACTEDTEL ». 
+
+ ![](images/08_Anonymisation_des_entités_détectées_Spacy.png)
+
+
 ## 2)	Le modèle Flair
 ### a) Named Entity Recognition (NER)
 On a pris comme exemple la phrase suivante : " Emma Louise s'est installée à Paris mais elle est née en 2007 à Montreal et elle est joignable sur 06660006."
@@ -62,3 +85,36 @@ Pour évaluer l’inférence du modèle Flair, on a opté pour calculer la confi
 
 Le résultat de calcul de métriques semblerait satisfaisant pour notre cas d’utilisation pour ces entités reconnues par Flair (à savoir les entités « PERSON » et « LOCATION »).
 Cela pourrait être amélioré si on combine le modèle Flair avec des plongements de mots en français (tel que CamemBERT, etc).
+
+
+## 3)	Le modèle CamemBert
+### a) NER par le modèle CamemBert
+On a pris comme exemple la phrase suivante : « Emma Louise, 26 rue Alexandre, 75005 Paris, France, née le 11/11/2007 et joignable sur 06660006. »
+
+ ![](images/09_Camembert.png)
+ 
+Le modèle a pu détecter les entités suivantes ayant comme Tag « NPP » qui signifie « Nom Propre » avec les scores d’inférence respectifs. Ces entités vont permettre d’identifier les données à caractère personnel. Parmi les entités qui ont pu être détectés :
+-	« Emma Louise » : « NPP » ayant comme score 0.997
+-	« Paris » : « NPP » ayant comme score 0.998
+-	« France » : « NPP » ayant comme score 0.997
+
+### b) NER par la combinaison du modèle Flair et les plongements de CamemBert
+On a pris comme exemple la phrase suivante : « Emma Louise s'est installée au 26 rue Alexandre, 75005 Paris, France, née le 11/11/2007 et joignable sur 06660006. »
+ 
+![](images/10_Camembert_Embeddings_+_Flair.png)
+
+Le modèle a pu détecter les entités « LOC », « ORG » et « PER », sauf que cette reconnaissance est erronée vu que cette détection a permis de reconnaître l’entité :
+-	« LOC » par le mot « Emma » avec un score 0.209
+-	« ORG » par le mot « Louise » avec un score 0.128
+-	« PER » par le mot « s’est » avec un score 0.188
+-	« LOC » par le mot « installée » avec un score 0.176
+Les résultats de ce modèle sont complètement insatisfaisants. Ce modèle est à améliorer.
+
+## 4) Le modèle Stanza
+
+On a pris comme exemple la phrase suivante : « Emma Louise, 26 rue Alexandre, 75005, Paris, Le modèle a permis de détecter les entités suivantes :
+-	« PER » reconnue par les mots « Emma Louise ».
+-	« LOC » reconnue par les mots « rue Alexandre », « Paris » et « France ».
+
+![](images/11_Stanza.png)
+ 
