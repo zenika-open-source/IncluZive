@@ -1,15 +1,18 @@
 ############### SPACY ########
--U spacy
-https://github.com/explosion/spacy-models/releases/download/en_core_web_md-2.2.0/en_core_web_md-2.2.0.tar.gz
-prettytable
+spacy==2.3.4
+prettytable==2.0.0
 
 ############### FLAIR ########
 torch==1.7.0
-flair
-stanza
+flair==0.7
+stanza==1.1.1
 sentencepiece==0.1.91 
 transformers==3.5.1 
 
 ############ PDFMINER ########
-pdfminer.six 
-pandas
+pdfminer.six
+
+pandas==1.2.0
+PyMuPDF==1.18.6
+
+notebook==6.1.6
