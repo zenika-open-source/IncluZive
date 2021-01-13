@@ -1,5 +1,5 @@
 ############### SPACY ########
-spacy==2.3.4
+spacy==2.3.5
 prettytable==2.0.0
 
 ############### FLAIR ########
@@ -14,5 +14,6 @@ pdfminer.six
 
 pandas==1.2.0
 PyMuPDF==1.18.6
+pytest==6.2.1
 
 notebook==6.1.6
