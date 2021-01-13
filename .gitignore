@@ -23,3 +23,5 @@ __pypackages__/
 
 # Pycharm
 .idea
+
+data/*.pdf
