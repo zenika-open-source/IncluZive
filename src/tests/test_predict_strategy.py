@@ -1,7 +1,7 @@
 from typing import List
 
 from src.predict_strategy import FlairPredictStrategy, SpacyPredictStrategy, PredictStrategy, ChainPredictStrategy, \
-    RegexPredictStrategy
+    RegexPredictStrategy, Span
 
 
 def test_predict_flair_strategy():
@@ -9,13 +9,13 @@ def test_predict_flair_strategy():
     sensitive = strategy.predict([
         'Jeanne DOMERGUE  20 ans, Nationalité française  domergue.jeanne@gmail.com  6, place des peupliers '
         '93200 Saint-Denis'])
-    assert 'Jeanne DOMERGUE' in sensitive
+    assert Span('Jeanne DOMERGUE', 'PER') in sensitive
 
 
 def test_predict_spacy_strategy():
     strategy = ChainPredictStrategy([
         SpacyPredictStrategy(),
-        RegexPredictStrategy(r'(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}')])
+        RegexPredictStrategy(r'(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}', 'TEL')])
     sensitive = strategy.predict([
         'Jeanne DOMERGUE  20 ans, Nationalité française  domergue.jeanne@gmail.com  6, place des peupliers '
         '93200 Saint-Denis',
@@ -23,39 +23,39 @@ def test_predict_spacy_strategy():
         '110 rue du Faubourg Saint-Pierre   marié   +33689888071',
     ])
     sensitive = list(sensitive)
-    assert 'Jeanne DOMERGUE' in sensitive
-    assert 'domergue.jeanne@gmail.com' in sensitive
-    assert '24 ans' in sensitive
-    assert '+33689888071' in sensitive
-    assert 'marié' in sensitive
-    assert '+33 6 98 86 08 71' in sensitive
+    assert Span('Jeanne DOMERGUE', 'PER') in sensitive
+    assert Span('domergue.jeanne@gmail.com', 'EMAIL') in sensitive
+    assert Span('24 ans', 'AGE') in sensitive
+    assert Span('+33689888071', 'TEL') in sensitive
+    assert Span('marié', 'FAM') in sensitive
+    assert Span('+33 6 98 86 08 71', 'TEL') in sensitive
 
 
 def test_chain_strategy():
     class StrategyA(PredictStrategy):
         def predict(self, lines: List[str]):
-            yield 'A'
-            yield 'A'
+            yield Span('A')
+            yield Span('A')
 
     class StrategyB(PredictStrategy):
         def predict(self, lines: List[str]):
-            yield 'B'
+            yield Span('B')
 
     strategy = ChainPredictStrategy([StrategyA(), StrategyB()])
     predictions = strategy.predict(None)
-    assert list(predictions) == ['A', 'A', 'B']
+    assert list(predictions) == [Span('A'), Span('A'), Span('B')]
 
 
 def test_regex_strategy():
-    strategy = RegexPredictStrategy(r'(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}')
+    strategy = RegexPredictStrategy(r'(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}', 'TEL')
 
     prediction = strategy.predict(['24 ans +33 6 98 86 08 71 vincent.dubay@gmail.com '
                                    '2 rue André Gide 28110 Lucé '])
-    assert list(prediction) == ['+33 6 98 86 08 71']
+    assert list(prediction) == [Span('+33 6 98 86 08 71', 'TEL')]
 
     prediction = strategy.predict(['110 rue du Faubourg Saint-Pierre   marié   +33689888071'])
-    assert list(prediction) == ['+33689888071']
+    assert list(prediction) == [Span('+33689888071', 'TEL')]
 
     prediction = strategy.predict(['24 ans +33 6 98 86 08 71 110 rue du Faubourg Saint-Pierre  '
                                    ' marié   +33689888071'])
-    assert list(prediction) == ['+33 6 98 86 08 71', '+33689888071']
+    assert list(prediction) == [Span('+33 6 98 86 08 71', 'TEL'), Span('+33689888071', 'TEL')]

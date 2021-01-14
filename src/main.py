@@ -23,9 +23,9 @@ def main(src, dest, apply_redactions=False):
         lines = [lines.replace('\n', ' ')
                  for _, _, _, _, lines, _, block_type in page.getText('blocks')
                  if TEXT_BLOCK == block_type]
-        sensitive = strategy.predict(lines)
-        for data in sensitive:
-            areas = page.searchFor(data)
+        sensitive_spans = strategy.predict(lines)
+        for span in sensitive_spans:
+            areas = page.searchFor(span.text)
 
             if apply_redactions:
                 [page.drawRect(area, color=(0, 0, 0), fill=(0, 0, 0), overlay=True) for area in areas]
