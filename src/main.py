@@ -6,7 +6,7 @@ from os import path
 
 import fitz
 
-from src.predict_strategy import SpacyPredictStrategy, ChainPredictStrategy, FlairPredictStrategy, PATTERN_STRATEGIES
+from src.predict_strategy import STRATEGY_FLAIR
 
 page_render_matrix = fitz.Matrix(fitz.Identity)
 page_render_matrix.preScale(2, 2)
@@ -15,7 +15,7 @@ TEXT_BLOCK = 0
 
 
 def main(src, dest, apply_redactions=False):
-    strategy = ChainPredictStrategy([FlairPredictStrategy()] + PATTERN_STRATEGIES)
+    strategy = STRATEGY_FLAIR
     all_sensitives_spans = []
     doc = fitz.Document(src)
     for page in doc:
