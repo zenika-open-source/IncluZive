@@ -1,11 +1,12 @@
 import argparse
+import csv
+import glob
+import os
+from os import path
 
 import fitz
-from flair.models import SequenceTagger
 
-from src.predict_strategy import FlairPredictStrategy, SpacyPredictStrategy
-
-model = SequenceTagger.load('fr-ner')
+from src.predict_strategy import SpacyPredictStrategy
 
 page_render_matrix = fitz.Matrix(fitz.Identity)
 page_render_matrix.preScale(2, 2)
@@ -15,28 +16,30 @@ TEXT_BLOCK = 0
 
 def main(src, dest, apply_redactions=False):
     strategy = SpacyPredictStrategy()
-    # opening the pdf
+    all_sensitives_spans = []
     doc = fitz.Document(src)
-    # iterating through pages
     for page in doc:
         page.wrap_contents()
-        lines = [lines.replace('\n', ' ')
-                 for _, _, _, _, lines, _, block_type in page.getText('blocks')
+        lines = [text.replace('\n', ' ')
+                 for _, _, _, _, text, _, block_type in page.getText('blocks')
                  if TEXT_BLOCK == block_type]
-        sensitive_spans = strategy.predict(lines)
-        for span in sensitive_spans:
+        sensitive_spans = [(line, span)
+                           for line in lines
+                           for span in strategy.predict(line)]
+        for _, span in sensitive_spans:
             areas = page.searchFor(span.text)
 
             if apply_redactions:
                 [page.drawRect(area, color=(0, 0, 0), fill=(0, 0, 0), overlay=True) for area in areas]
             else:
                 [page.addRedactAnnot(area, fill=(0, 0, 0), cross_out=False) for area in areas]
+        all_sensitives_spans.extend(sensitive_spans)
 
     if apply_redactions:
         new_doc = fitz.Document()
         for page in doc:
             pix = page.getPixmap(alpha=False, matrix=page_render_matrix)  # render page to an image
-            new_page = new_doc.newPage(page.number)
+            new_page = new_doc.newPage(page.number)  # noqa
             new_page.insertImage(new_page.rect, pixmap=pix)
             # applying the redaction
             # page.apply_redactions()
@@ -45,6 +48,17 @@ def main(src, dest, apply_redactions=False):
         # for page in doc:
         #     page.apply_redactions()
         doc.save(dest)
+
+    write_debug_file(all_sensitives_spans, dest)
+
+
+def write_debug_file(all_sensitives_spans, dest):
+    debug_filename = os.path.splitext(dest)[0] + '_debug.csv'
+    with open(debug_filename, 'w') as debug_file:
+        debug_writer = csv.writer(debug_file, delimiter=';',
+                                  quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        for line, span in all_sensitives_spans:
+            debug_writer.writerow([line, span.text, span.label])
 
 
 def add_bool_arg(arg_parser, name, default=False):
@@ -61,4 +75,11 @@ if __name__ == "__main__":
     parser.add_argument('dest', help='PDF destination')
     add_bool_arg(parser, 'apply-redactions')
     args = parser.parse_args()
-    main(args.src, args.dest, args.apply_redactions)
+
+    src_files = (glob.glob(os.path.join(args.src, '*.pdf'))
+                 if os.path.isdir(args.src) else [args.src])
+    dest_files = ['ano_' + path.basename(src) for src in src_files]
+    dest_files = [os.path.join(args.dest, filename) for filename in dest_files]
+
+    for src, dest in zip(src_files, dest_files):
+        main(src, dest, args.apply_redactions)
