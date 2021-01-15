@@ -31,7 +31,7 @@ class FlairPredictStrategy(PredictStrategy):
         self._model.predict(sentence)
         # print(txt.to_tagged_string())
         for entity in sentence.get_spans('ner'):
-            if entity.tag == 'PER' and entity.score > 0.7:
+            if entity.tag in ['PER', 'LOC'] and entity.score > 0.7:
                 yield Span(entity.to_original_text(), entity.tag)
 
 
@@ -85,3 +85,29 @@ class RegexPredictStrategy(PredictStrategy):
         for span in self._pattern.finditer(line):
             start, end = span.span()
             yield Span(line[start: end], self._label)
+
+
+PATTERN_STRATEGIES = [
+    RegexPredictStrategy(pattern=r'[\w\.-]+@[\w\.-]+', label='EMAIL'),  # extract_email
+    RegexPredictStrategy(pattern=r'(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d', label='DATE'),  # extract_date
+    RegexPredictStrategy(pattern=r'\d\s*\d{2}\s*\d{2}\s*\d{2}\s*\d{3}\s*\d{3}', label='NSEC'),  # extract_num_so_sec
+    # RegexPredictStrategy(pattern=r' ([0-9][0-9][0-9][0-9] )|(\s*\d{4}-\d{4}\s*)', label=),  # extract_single_date
+    RegexPredictStrategy(pattern=r'\s*[0-99\s-]*?\s+(ans|mois)', label='PERIODE'),  # extract_time_period
+    RegexPredictStrategy(pattern=r'\s*([0-99\s]*?)\s*enfants', label='CHILDREN'),  # extract_enfants
+    RegexPredictStrategy(pattern=r'[Mm]arié(e?)|[Pp]acsé(e?)|[Dd]ivorcé(e?)|[Ss]éparé(e?)|[Cc]élibataire', label='FAMILY_STATUS'),  # extract_sit_fam
+    RegexPredictStrategy(pattern=r'((\s)(\()*(Féminin)(\))*(\s))|((\s)(\()*(Masculin)(\))*(\s))', label='GENDER'),  # extract_sexe
+    # RegexPredictStrategy(pattern=r'((\s)(\()*(F)(\))*(\s))|((\s)(\()*(M)(\))*(\s))', label=),  # extract_sexe_abrev
+    RegexPredictStrategy(pattern=r'(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}', label='TEL'),  # extract_tel
+    # RegexPredictStrategy(pattern=r'\+*\(\+*\s*\d{3}\s*\)\s*\d{2,5}[-\.\s]??\d{2,4}[-\.\s]??\d{3,4}', label=),  # extract_tel
+    # RegexPredictStrategy(pattern=r'^\d*[.]\d*[.]?\d*[.]?\d*[.]?\d*', label=),  # extract_tel
+    # RegexPredictStrategy(pattern=r'\+*\d{2}[\s]??\d{1}[\s]??\d{2}[\s]??\d{2}[\s]??\d{2}[\s]??\d{2}', label=),  # extract_tel
+    # RegexPredictStrategy(pattern=r'^\(\+\d*\)\s\d*[.,]\d*[.,]?\d*[.,]?\d*[.,]?\d*', label=),  # extract_tel
+    RegexPredictStrategy(pattern=r'(?P<url>https?://[^\s]+)', label='URL'),  # extract_url
+    RegexPredictStrategy(pattern=r'Mandarin|MANDARIN|Hindi|HINDI|Espagnol|ESPAGNOL|Arabe|ARABE|Bengali|BENGALI|Russe'
+                                 r'|RUSSE|Portugais|PORTUGAIS|Indonésien|INDONESIEN|Urdu|URDU|Allemand|ALLEMAND'
+                                 r'|Japonais|JAPONAIS|Swahili|SWAHILI|Marathi|MARATHI|Télougou|TELOUGOU|Punjabi'
+                                 r'|PUNJABI|Chinois Wu|CHINOIS WU|Tamoul|TAMOUL|Turc|TURC|Roumain|ROUMAIN|'
+                                 r'Italien|ITALIEN|Chinois|CHINOIS|Kabyle|KABYLE',
+                         label='LANG'),
+
+]
