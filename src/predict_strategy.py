@@ -8,6 +8,8 @@ from flair.models import SequenceTagger
 from spacy.matcher import Matcher
 from spacy.tokens import Span
 
+from regex_filter import RegexFilter
+
 
 class PredictStrategy(ABC):
     @abstractmethod
@@ -25,7 +27,7 @@ class FlairPredictStrategy(PredictStrategy):
             self._model.predict(sentence)
             # print(txt.to_tagged_string())
             for entity in sentence.get_spans('ner'):
-                if entity.tag == 'PER' and entity.score > 0.7:
+                if entity.tag in ['PER','LOC'] and entity.score > 0.7:
                     yield entity.to_original_text()
 
 
@@ -68,11 +70,13 @@ class ChainPredictStrategy(PredictStrategy):
 
 class RegexPredictStrategy(PredictStrategy):
 
-    def __init__(self, pattern: str):
-        self._pattern = re.compile(pattern)
+    def __init__(self):
+        self._pattern = RegexFilter().patterns()
+
 
     def predict(self, lines: List[str]):
-        for line in lines:
-            for span in self._pattern.finditer(line):
-                start, end = span.span()
-                yield line[start: end]
+        for pattern in self._pattern:
+            for line in lines:
+                for span in re.compile(pattern).finditer(line):
+                    start, end = span.span()
+                    yield line[start: end]

@@ -3,7 +3,7 @@ import argparse
 import fitz
 from flair.models import SequenceTagger
 
-from src.predict_strategy import FlairPredictStrategy, SpacyPredictStrategy
+from predict_strategy import FlairPredictStrategy, SpacyPredictStrategy, RegexPredictStrategy, ChainPredictStrategy
 
 model = SequenceTagger.load('fr-ner')
 
@@ -14,7 +14,7 @@ TEXT_BLOCK = 0
 
 
 def main(src, dest, apply_redactions=False):
-    strategy = SpacyPredictStrategy()
+    strategy = ChainPredictStrategy([FlairPredictStrategy(),RegexPredictStrategy()])
     # opening the pdf
     doc = fitz.Document(src)
     # iterating through pages
