@@ -14,7 +14,7 @@ page_render_matrix.preScale(2, 2)
 TEXT_BLOCK = 0
 
 
-def main(src, dest, apply_redactions=False):
+def main(src, dest, apply_redaction=False, redaction_with_annotation=True):
     strategy = STRATEGY_FLAIR
     all_sensitives_spans = []
     doc = fitz.Document(src)
@@ -29,13 +29,13 @@ def main(src, dest, apply_redactions=False):
         for _, span in sensitive_spans:
             areas = page.searchFor(span.text)
 
-            if apply_redactions:
-                [page.drawRect(area, color=(0, 0, 0), fill=(0, 0, 0), overlay=True) for area in areas]
+            if redaction_with_annotation:
+                [page.drawRect(area, color=(0, 0, 0), fill=(1, 1, 1), overlay=True) for area in areas]
             else:
-                [page.addRedactAnnot(area, fill=(0, 0, 0), cross_out=False) for area in areas]
+                [page.addRedactAnnot(area, fill=(1, 1, 1), cross_out=False) for area in areas]
         all_sensitives_spans.extend(sensitive_spans)
 
-    if apply_redactions:
+    if redaction_with_annotation and apply_redaction:
         new_doc = fitz.Document()
         for page in doc:
             pix = page.getPixmap(alpha=False, matrix=page_render_matrix)  # render page to an image
@@ -45,8 +45,9 @@ def main(src, dest, apply_redactions=False):
             # page.apply_redactions()
         new_doc.save(dest)
     else:
-        # for page in doc:
-        #     page.apply_redactions()
+        if apply_redaction:
+            for page in doc:
+                page.apply_redactions()
         doc.save(dest)
 
     write_debug_file(all_sensitives_spans, dest)
@@ -73,7 +74,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('src', help='PDF source')
     parser.add_argument('dest', help='PDF destination')
-    add_bool_arg(parser, 'apply-redactions')
+    add_bool_arg(parser, 'apply-redaction')
+    add_bool_arg(parser, 'redaction-with-annotation')
     args = parser.parse_args()
 
     src_files = (glob.glob(os.path.join(args.src, '*.pdf'))
@@ -82,4 +84,4 @@ if __name__ == "__main__":
     dest_files = [os.path.join(args.dest, filename) for filename in dest_files]
 
     for src, dest in zip(src_files, dest_files):
-        main(src, dest, args.apply_redactions)
+        main(src, dest, args.apply_redaction, args.redaction_with_annotation)
