@@ -18,8 +18,11 @@ class Span:
 
 class PredictStrategy(ABC):
     @abstractmethod
-    def predict(self, lines: str) -> Iterator[Span]:
+    def predict(self, line: str) -> Iterator[Span]:
         pass
+
+    def list_predictions(self, line):
+        return list(self.predict(line))
 
 
 class FlairPredictStrategy(PredictStrategy):
@@ -30,9 +33,9 @@ class FlairPredictStrategy(PredictStrategy):
         sentence = Sentence(line)
         self._model.predict(sentence)
         # print(txt.to_tagged_string())
-        for entity in sentence.get_spans('ner'):
-            if entity.tag in ['PER', 'LOC'] and entity.score > 0.7:
-                yield Span(entity.to_original_text(), entity.tag)
+        return (Span(entity.to_original_text(), entity.tag)
+                for entity in sentence.get_spans('ner')
+                if entity.tag in ['PER', 'LOC'] and entity.score > 0.7)
 
 
 class SpacyPredictStrategy(PredictStrategy):
@@ -59,9 +62,9 @@ class SpacyPredictStrategy(PredictStrategy):
             _ = self._matcher(doc)
         except ValueError as error:
             print(error)
-        for ent in doc.ents:
-            if ent.label_ in ['PER', 'EMAIL', 'TEL', 'AGE', 'FAM']:
-                yield Span(ent.text, ent.label_)
+        return (Span(ent.text, ent.label_)
+                for ent in doc.ents
+                if ent.label_ in ['PER', 'EMAIL', 'TEL', 'AGE', 'FAM'])
 
 
 class ChainPredictStrategy(PredictStrategy):
