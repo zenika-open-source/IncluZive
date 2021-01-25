@@ -35,12 +35,12 @@ def test_predict_spacy_strategy():
 
 def test_chain_strategy():
     class StrategyA(PredictStrategy):
-        def predict(self, lines: str):
+        def predict(self, line: str):
             yield Span('A')
             yield Span('A')
 
     class StrategyB(PredictStrategy):
-        def predict(self, lines: str):
+        def predict(self, line: str):
             yield Span('B')
 
     strategy = ChainPredictStrategy([StrategyA(), StrategyB()])
