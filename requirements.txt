@@ -1,5 +1,6 @@
 flair==0.7
 notebook==6.1.6
+openpyxl==3.0.6
 pandas==1.2.0
 pdfminer.six
 prettytable==2.0.0
