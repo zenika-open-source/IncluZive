@@ -6,7 +6,7 @@ from os import path
 
 import fitz
 
-from src.predict_strategy import STRATEGY_FLAIR
+from predict_strategy import STRATEGY_FLAIR
 
 page_render_matrix = fitz.Matrix(fitz.Identity)
 page_render_matrix.preScale(2, 2)
