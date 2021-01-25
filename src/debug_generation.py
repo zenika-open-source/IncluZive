@@ -1,9 +1,9 @@
 import csv
 import os
-import string
 from typing import List, Union, Tuple
 
 import fitz
+from openpyxl import Workbook
 
 from src.predict_strategy import Span, PredictStrategy, FlairPredictStrategy
 
@@ -47,6 +47,15 @@ def write_debug_file(all_sensitives_spans: List[Tuple[Sentence, Union[None, Span
             debug_writer.writerow([line, text, label])
 
 
+def write_debug_spreadsheet(all_sensitives_spans: List[Tuple[Sentence, Union[None, Span]]], dest):
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.append(['Text Line', 'Entity Text', 'Entity Label'])
+    for sentence, span in all_sensitives_spans:
+        sheet.append([sentence] + ['', ''] if not span else [span.text, span.label])
+    workbook.save(filename=dest)
+
+
 if __name__ == "__main__":
     entities = list_entities('data/CV BAILLEUL Valentin.pdf')
-    write_debug_file(entities, 'data/CV BAILLEUL Valentin.csv')
+    write_debug_spreadsheet(entities, 'data/CV BAILLEUL Valentin.xlsx')
