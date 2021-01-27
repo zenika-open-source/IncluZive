@@ -1,3 +1,5 @@
+import pytest
+
 from src.predict_strategy import FlairPredictStrategy, SpacyPredictStrategy, PredictStrategy, ChainPredictStrategy, \
     RegexPredictStrategy, Span
 
@@ -48,16 +50,15 @@ def test_chain_strategy():
     assert list(predictions) == [Span('A'), Span('A'), Span('B')]
 
 
-def test_regex_strategy():
+@pytest.mark.parametrize('text_line, expected_span_list', [
+    ('24 ans +33 6 98 86 08 71 vincent.dubay@gmail.com '
+     '2 rue André Gide 28110 Lucé ', [Span('+33 6 98 86 08 71', 'TEL')]),
+    ('110 rue du Faubourg Saint-Pierre   marié   +33689888071', [Span('+33689888071', 'TEL')]),
+    ('24 ans +33 6 98 86 08 71 110 rue du Faubourg Saint-Pierre  '
+     ' marié   +33689888071', [Span('+33 6 98 86 08 71', 'TEL'), Span('+33689888071', 'TEL')])
+])
+def test_regex_strategy(text_line, expected_span_list):
     strategy = RegexPredictStrategy(r'(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}', 'TEL')
 
-    prediction = strategy.predict('24 ans +33 6 98 86 08 71 vincent.dubay@gmail.com '
-                                  '2 rue André Gide 28110 Lucé ')
-    assert list(prediction) == [Span('+33 6 98 86 08 71', 'TEL')]
-
-    prediction = strategy.predict('110 rue du Faubourg Saint-Pierre   marié   +33689888071')
-    assert list(prediction) == [Span('+33689888071', 'TEL')]
-
-    prediction = strategy.predict('24 ans +33 6 98 86 08 71 110 rue du Faubourg Saint-Pierre  '
-                                  ' marié   +33689888071')
-    assert list(prediction) == [Span('+33 6 98 86 08 71', 'TEL'), Span('+33689888071', 'TEL')]
+    prediction = strategy.predict(text_line)
+    assert list(prediction) == expected_span_list
