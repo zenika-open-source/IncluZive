@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Iterator
 
+import phonenumbers
 import spacy
 from flair.data import Sentence
 from flair.models import SequenceTagger
@@ -85,6 +86,15 @@ class RegexPredictStrategy(PredictStrategy):
         for span in self._pattern.finditer(line):
             start, end = span.span()
             yield Span(line[start: end], self._label)
+
+
+class PhoneNumberPredictStrategy(PredictStrategy):
+    def __init__(self, region):
+        self._region = region
+
+    def predict(self, line: str) -> Iterator[Span]:
+        for match in phonenumbers.PhoneNumberMatcher(line, region=self._region):
+            yield Span(match.raw_string, 'TEL')
 
 
 PATTERN_STRATEGIES = [
