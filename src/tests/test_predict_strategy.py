@@ -30,7 +30,7 @@ def test_predict_spacy_strategy():
 
     sensitive = strategy.predict('110 rue du Faubourg Saint-Pierre   marié   +33689888071')
     assert Span('marié', 'FAM') in sensitive
-    assert Span('+33689888071', 'TEL') in sensitive
+    assert Span('+33689888071', 'TEL') in sensitive 
 
 
 def test_chain_strategy():
