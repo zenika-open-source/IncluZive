@@ -6,23 +6,25 @@ from os import path
 
 import fitz
 
-from src.predict_strategy import STRATEGY_FLAIR
+from src.predict_strategy import STRATEGY_FLAIR as strategy, FaceImagePredictor
 
 page_render_matrix = fitz.Matrix(fitz.Identity)
 page_render_matrix.preScale(2, 2)
 
-TEXT_BLOCK = 0
+BLOCK_TEXT = 0
+BLOCK_IMAGE = 1
+
+face_image_predictor = FaceImagePredictor()
 
 
 def main(src, dest, apply_redaction=False, redaction_with_annotation=True):
-    strategy = STRATEGY_FLAIR
     all_sensitives_spans = []
     doc = fitz.Document(src)
     for page in doc:
         page.wrap_contents()
         lines = [text.replace('\n', ' ')
                  for _, _, _, _, text, _, block_type in page.getText('blocks')
-                 if TEXT_BLOCK == block_type]
+                 if BLOCK_TEXT == block_type]
         sensitive_spans = [(line, span)
                            for line in lines
                            for span in strategy.predict(line)]
@@ -35,6 +37,20 @@ def main(src, dest, apply_redaction=False, redaction_with_annotation=True):
                 [page.addRedactAnnot(area, fill=(1, 1, 1), cross_out=False) for area in areas]
         all_sensitives_spans.extend(sensitive_spans)
 
+        image_blocks = [block for block in page.getText('dict')['blocks']
+                        if block['type'] == BLOCK_IMAGE]
+        face_image_boxes = [block['bbox'] for block in image_blocks if face_image_predictor.predict(block['image'])]
+        if redaction_with_annotation:
+            [page.drawRect(area, color=(0, 0, 0), fill=(1, 1, 1), overlay=True) for area in face_image_boxes]
+        else:
+            [page.addRedactAnnot(area, fill=(1, 1, 1), cross_out=False) for area in face_image_boxes]
+
+    save_redacted_doc(doc, dest, apply_redaction, redaction_with_annotation)
+
+    write_debug_file(all_sensitives_spans, dest)
+
+
+def save_redacted_doc(doc, dest, apply_redaction, redaction_with_annotation):
     if redaction_with_annotation and apply_redaction:
         new_doc = fitz.Document()
         for page in doc:
@@ -49,8 +65,6 @@ def main(src, dest, apply_redaction=False, redaction_with_annotation=True):
             for page in doc:
                 page.apply_redactions()
         doc.save(dest)
-
-    write_debug_file(all_sensitives_spans, dest)
 
 
 def write_debug_file(all_sensitives_spans, dest):

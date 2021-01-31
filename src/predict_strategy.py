@@ -4,6 +4,9 @@ from dataclasses import dataclass
 from typing import Iterator
 
 import phonenumbers
+import cv2
+import numpy as np
+
 import spacy
 from flair.data import Sentence
 from flair.models import SequenceTagger
@@ -122,3 +125,21 @@ PATTERN_STRATEGIES = [
 ]
 
 STRATEGY_FLAIR = ChainPredictStrategy([FlairPredictStrategy()] + PATTERN_STRATEGIES)
+
+
+class FaceImagePredictor:
+    def __init__(self):
+        self._face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+    def predict(self, image: bytes) -> bool:
+        image_arr = np.frombuffer(image, dtype=np.uint8)
+        image_np = cv2.imdecode(image_arr, flags=cv2.IMREAD_COLOR)
+        gray = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)
+        faces = self._face_cascade.detectMultiScale(
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(30, 30)
+            # flags = cv2.CV_HAAR_SCALE_IMAGE
+        )
+        return len(faces) > 0
