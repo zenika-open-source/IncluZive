@@ -30,24 +30,24 @@ def main(src, dest, apply_redaction=False, redaction_with_annotation=True):
                            for span in strategy.predict(line)]
         for _, span in sensitive_spans:
             areas = page.searchFor(span.text)
-
-            if redaction_with_annotation:
-                [page.drawRect(area, color=(0, 0, 0), fill=(1, 1, 1), overlay=True) for area in areas]
-            else:
-                [page.addRedactAnnot(area, fill=(1, 1, 1), cross_out=False) for area in areas]
+            add_annotations(page, areas, redaction_with_annotation)
         all_sensitives_spans.extend(sensitive_spans)
 
         image_blocks = [block for block in page.getText('dict')['blocks']
                         if block['type'] == BLOCK_IMAGE]
         face_image_boxes = [block['bbox'] for block in image_blocks if face_image_predictor.predict(block['image'])]
-        if redaction_with_annotation:
-            [page.drawRect(area, color=(0, 0, 0), fill=(1, 1, 1), overlay=True) for area in face_image_boxes]
-        else:
-            [page.addRedactAnnot(area, fill=(1, 1, 1), cross_out=False) for area in face_image_boxes]
+        add_annotations(page, face_image_boxes, redaction_with_annotation)
 
     save_redacted_doc(doc, dest, apply_redaction, redaction_with_annotation)
 
     write_debug_file(all_sensitives_spans, dest)
+
+
+def add_annotations(page, boxes, redaction_with_annotation):
+    if redaction_with_annotation:
+        [page.drawRect(rect, color=(0, 0, 0), fill=(1, 1, 1), overlay=True) for rect in boxes]
+    else:
+        [page.addRedactAnnot(rect, fill=(1, 1, 1), cross_out=False) for rect in boxes]
 
 
 def save_redacted_doc(doc, dest, apply_redaction, redaction_with_annotation):
