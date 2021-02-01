@@ -4,6 +4,8 @@ from typing import List, Union, Tuple
 
 import fitz
 from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, NamedStyle, Border, Side
+from openpyxl.worksheet.worksheet import Worksheet
 
 from src.predict_strategy import Span, PredictStrategy, FlairPredictStrategy
 
@@ -49,8 +51,16 @@ def write_debug_file(all_sensitives_spans: List[Tuple[Sentence, Union[None, Span
 
 def write_debug_spreadsheet(all_sensitives_spans: List[Tuple[Sentence, Union[None, Span]]], dest):
     workbook = Workbook()
-    sheet = workbook.active
+    sheet: Worksheet = workbook.active
     sheet.append(['Text Line', 'Entity Text', 'Entity Label'])
+    header = NamedStyle(name="header")
+    header.font = Font(bold=True)
+    header.border = Border(bottom=Side(border_style="thin"))
+    header.alignment = Alignment(horizontal="center", vertical="center")
+    sheet.column_dimensions['A'].width = 100
+    sheet.column_dimensions['A'].alignment = Alignment(wrapText=True)
+    for cell in sheet[1]:
+        cell.style = header
     for sentence, span in all_sensitives_spans:
         sheet.append([sentence] + ['', ''] if not span else [span.text, span.label])
     workbook.save(filename=dest)
