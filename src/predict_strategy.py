@@ -110,11 +110,7 @@ PATTERN_STRATEGIES = [
     RegexPredictStrategy(pattern=r'((\s)(\()*(Féminin)(\))*(\s))|((\s)(\()*(Masculin)(\))*(\s))', label='GENDER'),
     # extract_sexe
     # RegexPredictStrategy(pattern=r'((\s)(\()*(F)(\))*(\s))|((\s)(\()*(M)(\))*(\s))', label=),  # extract_sexe_abrev
-    RegexPredictStrategy(pattern=r'(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}', label='TEL'),  # extract_tel
-    # RegexPredictStrategy(pattern=r'\+*\(\+*\s*\d{3}\s*\)\s*\d{2,5}[-\.\s]??\d{2,4}[-\.\s]??\d{3,4}', label=),  # extract_tel
-    # RegexPredictStrategy(pattern=r'^\d*[.]\d*[.]?\d*[.]?\d*[.]?\d*', label=),  # extract_tel
-    # RegexPredictStrategy(pattern=r'\+*\d{2}[\s]??\d{1}[\s]??\d{2}[\s]??\d{2}[\s]??\d{2}[\s]??\d{2}', label=),  # extract_tel
-    # RegexPredictStrategy(pattern=r'^\(\+\d*\)\s\d*[.,]\d*[.,]?\d*[.,]?\d*[.,]?\d*', label=),  # extract_tel
+    PhoneNumberPredictStrategy(region='FR'),
     RegexPredictStrategy(pattern=r'(?P<url>https?://[^\s]+)', label='URL'),  # extract_url
     RegexPredictStrategy(pattern=r'Mandarin|MANDARIN|Hindi|HINDI|Espagnol|ESPAGNOL|Arabe|ARABE|Bengali|BENGALI|Russe'
                                  r'|RUSSE|Portugais|PORTUGAIS|Indonésien|INDONESIEN|Urdu|URDU|Allemand|ALLEMAND'
