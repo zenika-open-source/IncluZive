@@ -35,7 +35,7 @@ class FlairPredictStrategy(PredictStrategy):
         # print(txt.to_tagged_string())
         return (Span(entity.to_original_text(), entity.tag)
                 for entity in sentence.get_spans('ner')
-                if entity.tag in ['PER', 'LOC'] and entity.score > 0.7)
+                if entity.tag in ['PER', 'LOC', 'ORG'] and entity.score > 0.7)
 
 
 class SpacyPredictStrategy(PredictStrategy):

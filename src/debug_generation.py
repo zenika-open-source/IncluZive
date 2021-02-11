@@ -5,7 +5,7 @@ from typing import List, Union, Tuple
 import fitz
 from openpyxl import Workbook
 
-from src.predict_strategy import Span, PredictStrategy, FlairPredictStrategy
+from predict_strategy import Span, PredictStrategy, FlairPredictStrategy,STRATEGY_FLAIR
 
 Sentence = str
 
@@ -22,7 +22,7 @@ def list_entities(src_pdf) -> List[Tuple[Sentence, Union[None, Span]]]:
                      for _, _, _, _, text, _, block_type in page.getText('blocks')
                      if TEXT_BLOCK == block_type]
 
-            span_by_line = _get_sensitive_span_by_line(lines, FlairPredictStrategy())
+            span_by_line = _get_sensitive_span_by_line(lines, STRATEGY_FLAIR)
             span_by_line_over_doc.extend(span_by_line)
     return span_by_line_over_doc
 
@@ -52,10 +52,10 @@ def write_debug_spreadsheet(all_sensitives_spans: List[Tuple[Sentence, Union[Non
     sheet = workbook.active
     sheet.append(['Text Line', 'Entity Text', 'Entity Label'])
     for sentence, span in all_sensitives_spans:
-        sheet.append([sentence] + ['', ''] if not span else [span.text, span.label])
+        sheet.append([sentence] + ['', ''] if not span else [sentence,span.text, span.label])
     workbook.save(filename=dest)
 
 
 if __name__ == "__main__":
-    entities = list_entities('data/CV BAILLEUL Valentin.pdf')
-    write_debug_spreadsheet(entities, 'data/CV BAILLEUL Valentin.xlsx')
+    entities = list_entities('data/CV3.pdf')
+    write_debug_spreadsheet(entities, 'data/CV3.xlsx')
