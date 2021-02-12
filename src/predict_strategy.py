@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Iterator
 
+import phonenumbers
 import spacy
 from flair.data import Sentence
 from flair.models import SequenceTagger
@@ -35,7 +36,7 @@ class FlairPredictStrategy(PredictStrategy):
         # print(txt.to_tagged_string())
         return (Span(entity.to_original_text(), entity.tag)
                 for entity in sentence.get_spans('ner')
-                if entity.tag in ['PER', 'LOC', 'ORG'] and entity.score > 0.7)
+                if entity.tag in ['PER', 'LOC'] and entity.score > 0.7)
 
 
 class SpacyPredictStrategy(PredictStrategy):
@@ -90,6 +91,15 @@ class RegexPredictStrategy(PredictStrategy):
             yield Span(line[start: end], self._label)
 
 
+class PhoneNumberPredictStrategy(PredictStrategy):
+    def __init__(self, region):
+        self._region = region
+
+    def predict(self, line: str) -> Iterator[Span]:
+        for match in phonenumbers.PhoneNumberMatcher(line, region=self._region):
+            yield Span(match.raw_string, 'TEL')
+
+
 PATTERN_STRATEGIES = [
     RegexPredictStrategy(pattern=r'[\w\.-]+@[\w\.-]+', label='EMAIL'),  # extract_email
     RegexPredictStrategy(pattern=r'(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d', label='DATE'),
@@ -103,11 +113,7 @@ PATTERN_STRATEGIES = [
     RegexPredictStrategy(pattern=r'((\s)(\()*(Féminin)(\))*(\s))|((\s)(\()*(Masculin)(\))*(\s))', label='GENDER'),
     # extract_sexe
     # RegexPredictStrategy(pattern=r'((\s)(\()*(F)(\))*(\s))|((\s)(\()*(M)(\))*(\s))', label=),  # extract_sexe_abrev
-    RegexPredictStrategy(pattern=r'(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}', label='TEL'),  # extract_tel
-    # RegexPredictStrategy(pattern=r'\+*\(\+*\s*\d{3}\s*\)\s*\d{2,5}[-\.\s]??\d{2,4}[-\.\s]??\d{3,4}', label=),  # extract_tel
-    # RegexPredictStrategy(pattern=r'^\d*[.]\d*[.]?\d*[.]?\d*[.]?\d*', label=),  # extract_tel
-    # RegexPredictStrategy(pattern=r'\+*\d{2}[\s]??\d{1}[\s]??\d{2}[\s]??\d{2}[\s]??\d{2}[\s]??\d{2}', label=),  # extract_tel
-    # RegexPredictStrategy(pattern=r'^\(\+\d*\)\s\d*[.,]\d*[.,]?\d*[.,]?\d*[.,]?\d*', label=),  # extract_tel
+    PhoneNumberPredictStrategy(region='FR'),
     RegexPredictStrategy(pattern=r'(?P<url>https?://[^\s]+)', label='URL'),  # extract_url
     RegexPredictStrategy(pattern=r'Mandarin|MANDARIN|Hindi|HINDI|Espagnol|ESPAGNOL|Arabe|ARABE|Bengali|BENGALI|Russe'
                                  r'|RUSSE|Portugais|PORTUGAIS|Indonésien|INDONESIEN|Urdu|URDU|Allemand|ALLEMAND'
