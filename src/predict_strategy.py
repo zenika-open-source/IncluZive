@@ -4,6 +4,9 @@ from dataclasses import dataclass
 from typing import Iterator
 
 import phonenumbers
+import cv2
+import numpy as np
+
 import spacy
 from flair.data import Sentence
 from flair.models import SequenceTagger
@@ -19,9 +22,9 @@ class Span:
 
 class PredictStrategy(ABC):
     @abstractmethod
-    def predict(self, line: str) -> Iterator[Span]:
+    def predict(self, lines: str) -> Iterator[Span]:
         pass
-
+    
     def list_predictions(self, line):
         return list(self.predict(line))
 
@@ -33,10 +36,9 @@ class FlairPredictStrategy(PredictStrategy):
     def predict(self, line: str) -> Iterator[Span]:
         sentence = Sentence(line)
         self._model.predict(sentence)
-        # print(txt.to_tagged_string())
-        return (Span(entity.to_original_text(), entity.tag)
-                for entity in sentence.get_spans('ner')
-                if entity.tag in ['PER', 'LOC'] and entity.score > 0.7)
+        for entity in sentence.get_spans('ner'):
+            if entity.tag in ['PER', 'LOC'] and entity.score > 0.7:
+                yield Span(entity.to_original_text(), entity.tag)
 
 
 class SpacyPredictStrategy(PredictStrategy):
@@ -63,9 +65,9 @@ class SpacyPredictStrategy(PredictStrategy):
             _ = self._matcher(doc)
         except ValueError as error:
             print(error)
-        return (Span(ent.text, ent.label_)
-                for ent in doc.ents
-                if ent.label_ in ['PER', 'EMAIL', 'TEL', 'AGE', 'FAM'])
+        for ent in doc.ents:
+            if ent.label_ in ['PER', 'EMAIL', 'TEL', 'AGE', 'FAM']:
+                yield Span(ent.text, ent.label_)
 
 
 class ChainPredictStrategy(PredictStrategy):
@@ -125,3 +127,21 @@ PATTERN_STRATEGIES = [
 ]
 
 STRATEGY_FLAIR = ChainPredictStrategy([FlairPredictStrategy()] + PATTERN_STRATEGIES)
+
+
+class FaceImagePredictor:
+    def __init__(self):
+        self._face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+    def predict(self, image: bytes) -> bool:
+        image_arr = np.frombuffer(image, dtype=np.uint8)
+        image_np = cv2.imdecode(image_arr, flags=cv2.IMREAD_COLOR)
+        gray = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)
+        faces = self._face_cascade.detectMultiScale(
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(30, 30)
+            # flags = cv2.CV_HAAR_SCALE_IMAGE
+        )
+        return len(faces) > 0

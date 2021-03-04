@@ -6,35 +6,53 @@ from os import path
 
 import fitz
 
-from src.predict_strategy import STRATEGY_FLAIR
+from src.predict_strategy import STRATEGY_FLAIR as strategy, FaceImagePredictor
+from src.debug_generation import write_style_frame, list_entities, get_lines
 
 page_render_matrix = fitz.Matrix(fitz.Identity)
 page_render_matrix.preScale(2, 2)
 
-TEXT_BLOCK = 0
+BLOCK_TEXT = 0
+BLOCK_IMAGE = 1
+
+face_image_predictor = FaceImagePredictor()
 
 
 def main(src, dest, apply_redaction=False, redaction_with_annotation=True):
-    strategy = STRATEGY_FLAIR
     all_sensitives_spans = []
     doc = fitz.Document(src)
     for page in doc:
         page.wrap_contents()
-        lines = [text.replace('\n', ' ')
-                 for _, _, _, _, text, _, block_type in page.getText('blocks')
-                 if TEXT_BLOCK == block_type]
+        lines = get_lines(page)
         sensitive_spans = [(line, span)
                            for line in lines
                            for span in strategy.predict(line)]
         for _, span in sensitive_spans:
             areas = page.searchFor(span.text)
-
-            if redaction_with_annotation:
-                [page.drawRect(area, color=(0, 0, 0), fill=(1, 1, 1), overlay=True) for area in areas]
-            else:
-                [page.addRedactAnnot(area, fill=(1, 1, 1), cross_out=False) for area in areas]
+            add_annotations(page, areas, redaction_with_annotation)
         all_sensitives_spans.extend(sensitive_spans)
 
+        image_blocks = [block for block in page.getText('dict')['blocks']
+                        if block['type'] == BLOCK_IMAGE]
+        face_image_boxes = [block['bbox'] for block in image_blocks if face_image_predictor.predict(block['image'])]
+        add_annotations(page, face_image_boxes, redaction_with_annotation)
+
+    save_redacted_doc(doc, dest, apply_redaction, redaction_with_annotation)
+
+    entities = list_entities(src)
+    write_style_frame(entities, dest.replace("pdf","xlsx")) #true
+    write_style_frame(all_sensitives_spans, dest.replace(dest.split('/')[0],dest.split('/')[0]+'/data_pred').replace("pdf","xlsx")) #pred
+
+
+
+def add_annotations(page, boxes, redaction_with_annotation):
+    if redaction_with_annotation:
+        [page.drawRect(rect, color=(0, 0, 0), fill=(1, 1, 1), overlay=True) for rect in boxes]
+    else:
+        [page.addRedactAnnot(rect, fill=(1, 1, 1), cross_out=False) for rect in boxes]
+
+
+def save_redacted_doc(doc, dest, apply_redaction, redaction_with_annotation):
     if redaction_with_annotation and apply_redaction:
         new_doc = fitz.Document()
         for page in doc:
@@ -49,8 +67,6 @@ def main(src, dest, apply_redaction=False, redaction_with_annotation=True):
             for page in doc:
                 page.apply_redactions()
         doc.save(dest)
-
-    write_debug_file(all_sensitives_spans, dest)
 
 
 def write_debug_file(all_sensitives_spans, dest):

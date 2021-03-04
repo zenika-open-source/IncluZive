@@ -9,7 +9,7 @@ from openpyxl.styles import Font, Alignment, NamedStyle, Border, Side
 from openpyxl.worksheet.worksheet import Worksheet
 from styleframe import StyleFrame, Styler
 
-from src.predict_strategy import Span, PredictStrategy, FlairPredictStrategy
+from src.predict_strategy import Span, PredictStrategy, FlairPredictStrategy, STRATEGY_FLAIR
 
 Sentence = str
 
@@ -18,25 +18,29 @@ TEXT_BLOCK = 0
 
 def list_entities(src_pdf) -> List[Tuple[Sentence, Union[None, Span]]]:
     span_by_line_over_doc = []
-    translation_table = str.maketrans('', '', r',')
     with fitz.Document(src_pdf) as doc:
         for page in doc:
             page.wrap_contents()
-            lines = [text.replace('\n', ' ').translate(translation_table)
-                     for _, _, _, _, text, _, block_type in page.getText('blocks')
-                     if TEXT_BLOCK == block_type]
-
-            span_by_line = _get_sensitive_span_by_line(lines, FlairPredictStrategy())
+            lines = get_lines(page)
+            span_by_line = _get_sensitive_span_by_line(lines, STRATEGY_FLAIR)
             span_by_line_over_doc.extend(span_by_line)
     return span_by_line_over_doc
+
+def get_lines(page):
+
+    return [text.replace('\n',' ')
+                     for _, _, _, _, text, _, block_type in page.getText('blocks')
+                     if TEXT_BLOCK == block_type]
 
 
 def _get_sensitive_span_by_line(lines: List[Sentence], strategy: PredictStrategy) \
         -> List[Tuple[Sentence, Union[None, Span]]]:
     span_list_by_line = [(line, strategy.list_predictions(line)) for line in lines]
+     
     span_list_by_line = map(lambda x: (x[0], [None] if not x[1] else x[1]),
                             span_list_by_line)
     span_by_line = [(line, span) for line, spans in span_list_by_line for span in spans]
+      
     return span_by_line
 
 
@@ -104,5 +108,5 @@ def write_style_frame(all_sensitives_spans: List[Tuple[Sentence, Union[None, Spa
 
 
 if __name__ == "__main__":
-    entities = list_entities('data/CV6.pdf')
-    write_style_frame(entities, 'data/CV6.xlsx')
+    entities = list_entities('CV1.pdf')
+    write_style_frame(entities, 'CV1.xlsx')
