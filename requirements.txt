@@ -1,5 +1,6 @@
 flair==0.7
 notebook==6.1.6
+opencv-contrib-python==4.5.1.48
 openpyxl==3.0.5
 pandas==1.1.5
 pdfminer.six==20201018
