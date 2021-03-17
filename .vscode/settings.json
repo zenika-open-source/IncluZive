@@ -1,0 +1,9 @@
+{
+    "python.pythonPath": "/Users/amalbedoui/opt/anaconda3/envs/retd/bin/python",
+    "python.testing.pytestArgs": [
+        "src"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.pytestEnabled": true
+}
