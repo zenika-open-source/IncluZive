@@ -29,3 +29,9 @@ data/**/*.csv
 data/**/*.docx
 data/**/*.doc
 data/**/*.DOC
+
+# .DS_store
+.DS_store
+
+# settings.json
+.vscode/settings.json

@@ -25,23 +25,25 @@ class PredictStrategy(ABC):
     def predict(self, lines: str) -> Iterator[Span]:
         pass
 
+    def list_predictions(self, line):
+        return list(self.predict(line))
+
 
 class FlairPredictStrategy(PredictStrategy):
     def __init__(self):
-        self._model = SequenceTagger.load('fr-ner')
+        self._model = SequenceTagger.load("fr-ner")
 
     def predict(self, line: str) -> Iterator[Span]:
         sentence = Sentence(line)
         self._model.predict(sentence)
-        # print(txt.to_tagged_string())
-        for entity in sentence.get_spans('ner'):
-            if entity.tag in ['PER', 'LOC'] and entity.score > 0.7:
+        for entity in sentence.get_spans("ner"):
+            if entity.tag in ["PER", "LOC"] and entity.score > 0.7:
                 yield Span(entity.to_original_text(), entity.tag)
 
 
 class SpacyPredictStrategy(PredictStrategy):
     def __init__(self):
-        self._nlp = spacy.load('fr_core_news_md')
+        self._nlp = spacy.load("fr_core_news_md")
         self._matcher = Matcher(self._nlp.vocab)
 
         def create_add_ent_fn(ent_label):
@@ -52,10 +54,11 @@ class SpacyPredictStrategy(PredictStrategy):
 
             return _add_ent
 
-        self._matcher.add('mail', create_add_ent_fn('EMAIL'), [{'LIKE_EMAIL': True}])
-        self._matcher.add('age', create_add_ent_fn('AGE'), [{}, {'ORTH': 'ans'}])
-        self._matcher.add('familiale', create_add_ent_fn('FAM'),
-                          [{'TEXT': {'REGEX': '[Mm]arié(e?)'}}])
+        self._matcher.add("mail", create_add_ent_fn("EMAIL"), [{"LIKE_EMAIL": True}])
+        self._matcher.add("age", create_add_ent_fn("AGE"), [{}, {"ORTH": "ans"}])
+        self._matcher.add(
+            "familiale", create_add_ent_fn("FAM"), [{"TEXT": {"REGEX": "[Mm]arié(e?)"}}]
+        )
 
     def predict(self, line: str) -> Iterator[Span]:
         doc = self._nlp(line)
@@ -64,12 +67,11 @@ class SpacyPredictStrategy(PredictStrategy):
         except ValueError as error:
             print(error)
         for ent in doc.ents:
-            if ent.label_ in ['PER', 'EMAIL', 'TEL', 'AGE', 'FAM']:
+            if ent.label_ in ["PER", "EMAIL", "TEL", "AGE", "FAM"]:
                 yield Span(ent.text, ent.label_)
 
 
 class ChainPredictStrategy(PredictStrategy):
-
     def __init__(self, strategies):
         self._strategies = strategies
 
@@ -80,7 +82,6 @@ class ChainPredictStrategy(PredictStrategy):
 
 
 class RegexPredictStrategy(PredictStrategy):
-
     def __init__(self, pattern: str, label: str):
         self._pattern = re.compile(pattern)
         self._label = label
@@ -88,7 +89,7 @@ class RegexPredictStrategy(PredictStrategy):
     def predict(self, line: str) -> Iterator[Span]:
         for span in self._pattern.finditer(line):
             start, end = span.span()
-            yield Span(line[start: end], self._label)
+            yield Span(line[start:end], self._label)
 
 
 class PhoneNumberPredictStrategy(PredictStrategy):
@@ -97,31 +98,50 @@ class PhoneNumberPredictStrategy(PredictStrategy):
 
     def predict(self, line: str) -> Iterator[Span]:
         for match in phonenumbers.PhoneNumberMatcher(line, region=self._region):
-            yield Span(match.raw_string, 'TEL')
+            yield Span(match.raw_string, "TEL")
 
 
 PATTERN_STRATEGIES = [
-    RegexPredictStrategy(pattern=r'[\w\.-]+@[\w\.-]+', label='EMAIL'),  # extract_email
-    RegexPredictStrategy(pattern=r'(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d', label='DATE'),
+    RegexPredictStrategy(pattern=r"[\w\.-]+@[\w\.-]+", label="EMAIL"),  # extract_email
+    RegexPredictStrategy(
+        pattern=r"(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d",
+        label="DATE",
+    ),
     # extract_date
-    RegexPredictStrategy(pattern=r'\d\s*\d{2}\s*\d{2}\s*\d{2}\s*\d{3}\s*\d{3}', label='NSEC'),  # extract_num_so_sec
+    RegexPredictStrategy(
+        pattern=r"\d\s*\d{2}\s*\d{2}\s*\d{2}\s*\d{3}\s*\d{3}", label="NSEC"
+    ),  # extract_num_so_sec
     # RegexPredictStrategy(pattern=r' ([0-9][0-9][0-9][0-9] )|(\s*\d{4}-\d{4}\s*)', label=),  # extract_single_date
-    RegexPredictStrategy(pattern=r'\s*[0-99\s-]*?\s+(ans|mois)', label='PERIODE'),  # extract_time_period
-    RegexPredictStrategy(pattern=r'\s*([0-99\s]*?)\s*enfants', label='CHILDREN'),  # extract_enfants
-    RegexPredictStrategy(pattern=r'[Mm]arié(e?)|[Pp]acsé(e?)|[Dd]ivorcé(e?)|[Ss]éparé(e?)|[Cc]élibataire',
-                         label='FAMILY_STATUS'),  # extract_sit_fam
-    RegexPredictStrategy(pattern=r'((\s)(\()*(Féminin)(\))*(\s))|((\s)(\()*(Masculin)(\))*(\s))', label='GENDER'),
+    RegexPredictStrategy(
+        pattern=r"[0-99]+?\s*(ans\b|an\b|mois\b)", label="PERIODE"
+    ),  # extract_time_period
+    RegexPredictStrategy(
+        pattern=r"\s*([0-99\s]*?)\s*enfants", label="CHILDREN"
+    ),  # extract_enfants
+    RegexPredictStrategy(
+        pattern=r"[Mm]arié(e?)|[Pp]acsé(e?)|[Dd]ivorcé(e?)|[Ss]éparé(e?)|[Cc]élibataire",
+        label="FAMILY_STATUS",
+    ),  # extract_sit_fam
+    RegexPredictStrategy(
+        pattern=r"((\s)(\()*(Féminin)(\))*(\s))|((\s)(\()*(Masculin)(\))*(\s))",
+        label="GENDER",
+    ),
     # extract_sexe
     # RegexPredictStrategy(pattern=r'((\s)(\()*(F)(\))*(\s))|((\s)(\()*(M)(\))*(\s))', label=),  # extract_sexe_abrev
-    PhoneNumberPredictStrategy(region='FR'),
-    RegexPredictStrategy(pattern=r'(?P<url>https?://[^\s]+)', label='URL'),  # extract_url
-    RegexPredictStrategy(pattern=r'Mandarin|MANDARIN|Hindi|HINDI|Espagnol|ESPAGNOL|Arabe|ARABE|Bengali|BENGALI|Russe'
-                                 r'|RUSSE|Portugais|PORTUGAIS|Indonésien|INDONESIEN|Urdu|URDU|Allemand|ALLEMAND'
-                                 r'|Japonais|JAPONAIS|Swahili|SWAHILI|Marathi|MARATHI|Télougou|TELOUGOU|Punjabi'
-                                 r'|PUNJABI|Chinois Wu|CHINOIS WU|Tamoul|TAMOUL|Turc|TURC|Roumain|ROUMAIN|'
-                                 r'Italien|ITALIEN|Chinois|CHINOIS|Kabyle|KABYLE',
-                         label='LANG'),
-
+    PhoneNumberPredictStrategy(region="FR"),
+    RegexPredictStrategy(
+        pattern=r"""(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+
+        |(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))""",
+        label="URL",
+    ),  # extract_url
+    RegexPredictStrategy(
+        pattern=r"Mandarin|MANDARIN|Hindi|HINDI|Espagnol|ESPAGNOL|Arabe|ARABE|Bengali|BENGALI|Russe"
+        r"|RUSSE|Portugais|PORTUGAIS|Indonésien|INDONESIEN|Urdu|URDU|Allemand|ALLEMAND"
+        r"|Japonais|JAPONAIS|Swahili|SWAHILI|Marathi|MARATHI|Télougou|TELOUGOU|Punjabi"
+        r"|PUNJABI|Chinois Wu|CHINOIS WU|Tamoul|TAMOUL|Turc|TURC|Roumain|ROUMAIN|"
+        r"Italien|ITALIEN|Chinois|CHINOIS|Kabyle|KABYLE|Vietnamien|VIETNAMIEN",
+        label="LANG",
+    ),
 ]
 
 STRATEGY_FLAIR = ChainPredictStrategy([FlairPredictStrategy()] + PATTERN_STRATEGIES)
@@ -129,7 +149,9 @@ STRATEGY_FLAIR = ChainPredictStrategy([FlairPredictStrategy()] + PATTERN_STRATEG
 
 class FaceImagePredictor:
     def __init__(self):
-        self._face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        self._face_cascade = cv2.CascadeClassifier(
+            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+        )
 
     def predict(self, image: bytes) -> bool:
         image_arr = np.frombuffer(image, dtype=np.uint8)
