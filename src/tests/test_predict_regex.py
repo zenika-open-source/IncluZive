@@ -17,8 +17,22 @@ def test_RegexPredictStrategy_URL(test_url):
     assert strat.predict(test_url)
 
 
-@pytest.mark.parametrize("test_periode", [" - 8 ans", " 6 mois", "(5 ans)", "(1 an)"])
+@pytest.mark.parametrize("test_periode", [" - 8 ans", " 6 mois", "(5 ans)", "(1 an)", "	1 an et demi"])
 def test_RegexPredictStrategy_PERIODE(test_periode):
-    my_regex = r"[0-99]+?\s*(ans\b|an\b|mois\b)"
+    my_regex = r"[0-99]+?\s*(ans\b|an\b|mois\b)(\set demi)*"
     strat = RegexPredictStrategy(pattern=my_regex, label="PERIODE")
     assert strat.predict(test_periode)
+
+
+@pytest.mark.parametrize("test_date", ["07/12/78", "5/10/2006", "3/12/2003"])
+def test_RegexPredictStrategy_DATE(test_date):
+    my_regex = r"(0*[1-9]|[12][0-9]|3[01])[-/](0[1-9]|1[012])[-/](19|20)*\d\d"
+    strat = RegexPredictStrategy(pattern=my_regex, label="DATE")
+    assert strat.predict(test_date)
+
+
+@pytest.mark.parametrize("test_children", ["2 enfants", " 3 enfants"])
+def test_RegexPredictStrategy_CHILDREN(test_children):
+    my_regex = r"([0-99]+?)\s*enfants"
+    strat = RegexPredictStrategy(pattern=my_regex, label="CHILDREN")
+    assert strat.predict(test_children)
