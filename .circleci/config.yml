@@ -1,0 +1,45 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@1.2
+  slack: circleci/slack@4.3.1
+
+workflows:
+  build:
+    jobs:
+      - build-and-test:
+          context:
+            - project-IncluZive
+
+
+jobs:
+  build-and-test:
+    docker:
+      - image: cimg/python:3.8
+    resource_class: large
+    steps:
+      - checkout
+      - python/install-packages:
+          pkg-manager: pip
+          pip-dependency-file: requirements-dev.txt
+      - run:
+          name: Install Spacy model 'fr_core_news_md'
+          command: python -m spacy download fr_core_news_md
+      - run:
+          name: Run static analysis
+          command: flake8 src
+      - run:
+          name: Run tests
+          command: pytest src
+      - run:
+          name: Output the max memory consumed
+          command: cat /sys/fs/cgroup/memory/memory.max_usage_in_bytes
+          when: always
+      - slack/notify:
+          channel: G01EG6G03DX
+          event: pass
+          template: basic_success_1
+      - slack/notify:
+          channel: G01EG6G03DX
+          event: fail
+          template: basic_fail_1
