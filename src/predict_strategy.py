@@ -32,12 +32,15 @@ class PredictStrategy(ABC):
 class FlairPredictStrategy(PredictStrategy):
     def __init__(self):
         self._model = SequenceTagger.load("fr-ner")
+        self.lang_list = []
 
     def predict(self, line: str) -> Iterator[Span]:
         sentence = Sentence(line)
         self._model.predict(sentence)
         for entity in sentence.get_spans("ner"):
-            if entity.tag in ["PER", "LOC"] and entity.score > 0.7:
+            for word in LANG_PATTERN_STRATEGIES[0].predict(str((entity[0]))):
+                self.lang_list.append(word.text)
+            if entity.tag in ["PER", "LOC"] and entity.score > 0.7 and entity.text not in self.lang_list:
                 yield Span(entity.to_original_text(), entity.tag)
 
 
@@ -104,7 +107,7 @@ class PhoneNumberPredictStrategy(PredictStrategy):
 PATTERN_STRATEGIES = [
     RegexPredictStrategy(pattern=r"[\w\.-]+@[\w\.-]+", label="EMAIL"),  # extract_email
     RegexPredictStrategy(
-        pattern=r"(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d",
+        pattern=r"(0*[1-9]|[12][0-9]|3[01])[-/](0[1-9]|1[012])[-/](19|20)*\d\d",
         label="DATE",
     ),
     # extract_date
@@ -113,10 +116,10 @@ PATTERN_STRATEGIES = [
     ),  # extract_num_so_sec
     # RegexPredictStrategy(pattern=r' ([0-9][0-9][0-9][0-9] )|(\s*\d{4}-\d{4}\s*)', label=),  # extract_single_date
     RegexPredictStrategy(
-        pattern=r"[0-99]+?\s*(ans\b|an\b|mois\b)", label="PERIODE"
+        pattern=r"[0-99]+?\s*(ans\b|an\b|mois\b)(\set demi)*", label="PERIODE"
     ),  # extract_time_period
     RegexPredictStrategy(
-        pattern=r"\s*([0-99\s]*?)\s*enfants", label="CHILDREN"
+        pattern=r"([0-99]+?)\s*enfants", label="CHILDREN"
     ),  # extract_enfants
     RegexPredictStrategy(
         pattern=r"[Mm]arié(e?)|[Pp]acsé(e?)|[Dd]ivorcé(e?)|[Ss]éparé(e?)|[Cc]élibataire",
@@ -134,17 +137,19 @@ PATTERN_STRATEGIES = [
         |(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))""",
         label="URL",
     ),  # extract_url
+]
+
+LANG_PATTERN_STRATEGIES = [
     RegexPredictStrategy(
         pattern=r"Mandarin|MANDARIN|Hindi|HINDI|Espagnol|ESPAGNOL|Arabe|ARABE|Bengali|BENGALI|Russe"
         r"|RUSSE|Portugais|PORTUGAIS|Indonésien|INDONESIEN|Urdu|URDU|Allemand|ALLEMAND"
         r"|Japonais|JAPONAIS|Swahili|SWAHILI|Marathi|MARATHI|Télougou|TELOUGOU|Punjabi"
         r"|PUNJABI|Chinois Wu|CHINOIS WU|Tamoul|TAMOUL|Turc|TURC|Roumain|ROUMAIN|"
-        r"Italien|ITALIEN|Chinois|CHINOIS|Kabyle|KABYLE|Vietnamien|VIETNAMIEN",
+        r"Italien|ITALIEN|Chinois|CHINOIS|Kabyle|KABYLE|Vietnamien|VIETNAMIEN|Brésilien|BRESILIEN|Suédois|SUEDOIS",
         label="LANG",
     ),
 ]
-
-STRATEGY_FLAIR = ChainPredictStrategy([FlairPredictStrategy()] + PATTERN_STRATEGIES)
+STRATEGY_FLAIR = ChainPredictStrategy(LANG_PATTERN_STRATEGIES + [FlairPredictStrategy()] + PATTERN_STRATEGIES)
 
 
 class FaceImagePredictor:

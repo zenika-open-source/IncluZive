@@ -35,3 +35,6 @@ data/**/*.DOC
 
 # settings.json
 .vscode/settings.json
+
+# .coverage
+.coverage
