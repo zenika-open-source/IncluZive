@@ -8,8 +8,8 @@ from src.predict_strategy import RegexPredictStrategy
         "https://regex101.com/r/wcSXEr/5/",
         "https://regexsf101.com/r/wcSXsfEr/5/",
         "www.lala.com",
-        "elevatedabstractions.wordpress.com",
-        "http:// emericmartineau.blogspot.fr"
+        "julien.wordpress.com",
+        "http:// julien.blogspot.fr"
     ],
 )
 def test_RegexPredictStrategy_URL(test_url):
