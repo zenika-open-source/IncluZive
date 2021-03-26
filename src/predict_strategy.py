@@ -105,7 +105,7 @@ class PhoneNumberPredictStrategy(PredictStrategy):
 
 
 PATTERN_STRATEGIES = [
-    RegexPredictStrategy(pattern=r"[\w\.-]+@[\w\.-]+", label="EMAIL"),  # extract_email
+    RegexPredictStrategy(pattern=r"[\w\.-]+[@]\w+[.]\w{2,4}([.]\w{2,4})*", label="EMAIL"),  # extract_email
     RegexPredictStrategy(
         pattern=r"(0*[1-9]|[12][0-9]|3[01])[-/](0[1-9]|1[012])[-/](19|20)*\d\d",
         label="DATE",
@@ -116,7 +116,7 @@ PATTERN_STRATEGIES = [
     ),  # extract_num_so_sec
     # RegexPredictStrategy(pattern=r' ([0-9][0-9][0-9][0-9] )|(\s*\d{4}-\d{4}\s*)', label=),  # extract_single_date
     RegexPredictStrategy(
-        pattern=r"[0-99]+?\s*(ans\b|an\b|mois\b)(\set demi)*", label="PERIODE"
+        pattern=r"\d\.*\,*?\d*?\s?\s?(ans|ANS|an\b|AN\b|mois\b|MOIS\b|années\b)(\set demi)*", label="PERIODE"
     ),  # extract_time_period
     RegexPredictStrategy(
         pattern=r"([0-99]+?)\s*enfants", label="CHILDREN"
@@ -133,8 +133,8 @@ PATTERN_STRATEGIES = [
     # RegexPredictStrategy(pattern=r'((\s)(\()*(F)(\))*(\s))|((\s)(\()*(M)(\))*(\s))', label=),  # extract_sexe_abrev
     PhoneNumberPredictStrategy(region="FR"),
     RegexPredictStrategy(
-        pattern=r"""(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+
-        |(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))""",
+        pattern=r"(?i)\b((?:https?://\s?|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+"
+        r"|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))",
         label="URL",
     ),  # extract_url
 ]

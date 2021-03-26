@@ -8,18 +8,22 @@ from src.predict_strategy import RegexPredictStrategy
         "https://regex101.com/r/wcSXEr/5/",
         "https://regexsf101.com/r/wcSXsfEr/5/",
         "www.lala.com",
+        "elevatedabstractions.wordpress.com",
+        "http:// emericmartineau.blogspot.fr"
     ],
 )
 def test_RegexPredictStrategy_URL(test_url):
-    my_regex = r"""(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+
-    |(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"""
-    strat = RegexPredictStrategy(pattern=my_regex, label="URL")
+    strat = RegexPredictStrategy(
+        pattern=r"(?i)\b((?:https?://\s?|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+"
+        r"|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))",
+        label="URL",
+    )
     assert strat.predict(test_url)
 
 
-@pytest.mark.parametrize("test_periode", [" - 8 ans", " 6 mois", "(5 ans)", "(1 an)", "	1 an et demi"])
+@pytest.mark.parametrize("test_periode", [" - 8 ans", "(1 an)", "	1 an et demi", "9 années", "1.5 mois", "4,5 ANS"])
 def test_RegexPredictStrategy_PERIODE(test_periode):
-    my_regex = r"[0-99]+?\s*(ans\b|an\b|mois\b)(\set demi)*"
+    my_regex = r"\d\.*\,*?\d*?\s?\s?(ans|ANS|an\b|AN\b|mois\b|MOIS\b|années\b)(\set demi)*"
     strat = RegexPredictStrategy(pattern=my_regex, label="PERIODE")
     assert strat.predict(test_periode)
 
@@ -36,3 +40,10 @@ def test_RegexPredictStrategy_CHILDREN(test_children):
     my_regex = r"([0-99]+?)\s*enfants"
     strat = RegexPredictStrategy(pattern=my_regex, label="CHILDREN")
     assert strat.predict(test_children)
+
+
+@pytest.mark.parametrize("test_mail", ["ab.cd@ef.fr", "abcd@ef.com"])
+def test_RegexPredictStrategy_MAIL(test_mail):
+    my_regex = r"[\w\.-]+[@]\w+[.]\w{2,4}([.]\w{2,4})*"
+    strat = RegexPredictStrategy(pattern=my_regex, label="MAIL")
+    assert strat.predict(test_mail)
