@@ -14,6 +14,10 @@ from src.predict_strategy import Span, PhoneNumberPredictStrategy
             "110 rue du Faubourg Saint-Pierre   marié   +33689888071",
             [Span("+33689888071", "TEL")],
         ),
+        (
+            "110 rue du Faubourg Saint-Pierre   marié   (+33) 6.25.56.27.53",
+            [Span("(+33) 6.25.56.27.53", "TEL")],
+        ),
         # TODO without '\n' in test case below
         (
             "24 ans +33 6 98 86 08 71\n 110 rue du Faubourg Saint-Pierre marié   +33689888071",
