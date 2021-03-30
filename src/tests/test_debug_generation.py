@@ -2,6 +2,7 @@ from typing import Iterator
 
 import pytest
 
+from src.debug_generation import Sentence
 from src.main import _get_sensitive_span_by_line
 from src.predict_strategy import PredictStrategy, Span
 
@@ -14,10 +15,15 @@ class FakePredictionStrategy(PredictStrategy):
         return (x for x in self._predictions)
 
 
+def build_sentence(text: str) -> Sentence:
+    return Sentence(text, None, None)
+
+
 test_data = [
-    (["line A"], [], [("line A", None)]),
-    (["line A", "line B"], [], [("line A", None), ("line B", None)]),
-    (["line A"], [Span("span1", "label1")], [("line A", Span("span1", "label1"))]),
+    ([build_sentence("line A")], [], [(build_sentence("line A"), None)]),
+    ([build_sentence("line A"), build_sentence("line B")], [],
+     [(build_sentence("line A"), None), (build_sentence("line B"), None)]),
+    ([build_sentence("line A")], [Span("span1", "label1")], [(build_sentence("line A"), Span("span1", "label1"))]),
 ]
 
 
