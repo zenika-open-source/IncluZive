@@ -5,21 +5,18 @@ import os
 from os import path
 from typing import List, Union, Tuple
 
-
 import fitz
 
+from src.debug_generation import write_style_frame, Sentence
 from src.predict_strategy import (
     STRATEGY_FLAIR as strategy,
     FaceImagePredictor,
     Span,
     PredictStrategy,
 )
-from src.debug_generation import write_style_frame
 
 page_render_matrix = fitz.Matrix(fitz.Identity)
 page_render_matrix.preScale(2, 2)
-
-Sentence = str
 
 BLOCK_TEXT = 0
 BLOCK_IMAGE = 1
@@ -33,13 +30,13 @@ def main(src, dest, apply_redaction=False, redaction_with_annotation=True):
     for page in doc:
         page.wrap_contents()
         lines = get_lines(page)
-        sensitive_spans = [
-            (line, span) for line in lines for span in strategy.predict(line)
-        ]
-        for _, span in sensitive_spans:
+        span_by_line = _get_sensitive_span_by_line(lines, strategy)
+        for _, span in span_by_line:
+            if not span:
+                continue
             areas = page.searchFor(span.text)
             add_annotations(page, areas, redaction_with_annotation)
-        all_sensitives_spans.extend(sensitive_spans)
+        all_sensitives_spans.extend(span_by_line)
 
         image_blocks = [
             block
@@ -54,15 +51,7 @@ def main(src, dest, apply_redaction=False, redaction_with_annotation=True):
         add_annotations(page, face_image_boxes, redaction_with_annotation)
 
     save_redacted_doc(doc, dest, apply_redaction, redaction_with_annotation)
-
-    entities = list_entities(src)
-    write_style_frame(entities, dest.replace("pdf", "xlsx"))  # true
-    write_style_frame(
-        all_sensitives_spans,
-        dest.replace(dest.split("/")[0], dest.split("/")[0] + "/data_pred").replace(
-            "pdf", "xlsx"
-        ),
-    )  # pred
+    write_style_frame(all_sensitives_spans, dest.replace("pdf", "xlsx"))
 
 
 def add_annotations(page, boxes, redaction_with_annotation):
@@ -112,30 +101,18 @@ def add_bool_arg(arg_parser, name, default=False):
     arg_parser.set_defaults(**{var_name: default})
 
 
-def list_entities(src_pdf) -> List[Tuple[Sentence, Union[None, Span]]]:
-    span_by_line_over_doc = []
-    with fitz.Document(src_pdf) as doc:
-        for page in doc:
-            page.wrap_contents()
-            lines = get_lines(page)
-            span_by_line = _get_sensitive_span_by_line(lines, strategy)
-            span_by_line_over_doc.extend(span_by_line)
-    return span_by_line_over_doc
-
-
-def get_lines(page):
-
+def get_lines(page) -> Sentence:
     return [
-        text.replace("\n", " ")
-        for _, _, _, _, text, _, block_type in page.getText("blocks")
+        Sentence(text.replace("\n", " "), (x1, y1, x2, y2), page.number)
+        for x1, y1, x2, y2, text, _, block_type in page.getText("blocks")
         if BLOCK_TEXT == block_type
     ]
 
 
 def _get_sensitive_span_by_line(
-    lines: List[Sentence], strategy: PredictStrategy
+        lines: List[Sentence], predict_strategy: PredictStrategy
 ) -> List[Tuple[Sentence, Union[None, Span]]]:
-    span_list_by_line = [(line, strategy.list_predictions(line)) for line in lines]
+    span_list_by_line = [(line, predict_strategy.list_predictions(line.text)) for line in lines]
 
     span_list_by_line = map(
         lambda x: (x[0], [None] if not x[1] else x[1]), span_list_by_line
