@@ -1,5 +1,5 @@
 [flake8]
 max-line-length=120
 per-file-ignores = 
-    src/pdf_redactor.py : E701, E127, F821, E703
-    src/example.py : E266
+    src/back/pdf_redactor.py : E701, E127, F821, E703
+    src/back/example.py : E266

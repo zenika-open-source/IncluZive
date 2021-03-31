@@ -6,8 +6,6 @@ from styleframe import StyleFrame, Styler
 
 from src.predict_strategy import Span
 
-TEXT_BLOCK = 0
-
 
 @dataclass
 class Sentence:

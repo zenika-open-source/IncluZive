@@ -1,5 +1,4 @@
 import argparse
-import csv
 import glob
 import os
 from os import path
@@ -9,7 +8,7 @@ import fitz
 
 from src.debug_generation import write_style_frame, Sentence
 from src.predict_strategy import (
-    STRATEGY_FLAIR as strategy,
+    STRATEGY_FLAIR,
     FaceImagePredictor,
     Span,
     PredictStrategy,
@@ -24,13 +23,13 @@ BLOCK_IMAGE = 1
 face_image_predictor = FaceImagePredictor()
 
 
-def main(src, dest, apply_redaction=False, redaction_with_annotation=True):
+def main(src, output_path, apply_redaction=False, redaction_with_annotation=True):
     all_sensitives_spans = []
     doc = fitz.Document(src)
     for page in doc:
         page.wrap_contents()
         lines = get_lines(page)
-        span_by_line = _get_sensitive_span_by_line(lines, strategy)
+        span_by_line = _get_sensitive_span_by_line(lines, STRATEGY_FLAIR)
         for _, span in span_by_line:
             if not span:
                 continue
@@ -50,8 +49,8 @@ def main(src, dest, apply_redaction=False, redaction_with_annotation=True):
         ]
         add_annotations(page, face_image_boxes, redaction_with_annotation)
 
-    save_redacted_doc(doc, dest, apply_redaction, redaction_with_annotation)
-    write_style_frame(all_sensitives_spans, dest.replace("pdf", "xlsx"))
+    save_redacted_doc(doc, output_path, apply_redaction, redaction_with_annotation)
+    write_style_frame(all_sensitives_spans, output_path.replace("pdf", "xlsx"))
 
 
 def add_annotations(page, boxes, redaction_with_annotation):
@@ -64,7 +63,7 @@ def add_annotations(page, boxes, redaction_with_annotation):
         [page.addRedactAnnot(rect, fill=(1, 1, 1), cross_out=False) for rect in boxes]
 
 
-def save_redacted_doc(doc, dest, apply_redaction, redaction_with_annotation):
+def save_redacted_doc(doc, output_path, apply_redaction, redaction_with_annotation):
     if redaction_with_annotation and apply_redaction:
         new_doc = fitz.Document()
         for page in doc:
@@ -75,30 +74,12 @@ def save_redacted_doc(doc, dest, apply_redaction, redaction_with_annotation):
             new_page.insertImage(new_page.rect, pixmap=pix)
             # applying the redaction
             # page.apply_redactions()
-        new_doc.save(dest)
+        new_doc.save(output_path)
     else:
         if apply_redaction:
             for page in doc:
                 page.apply_redactions()
-        doc.save(dest)
-
-
-def write_debug_file(all_sensitives_spans, dest):
-    debug_filename = os.path.splitext(dest)[0] + "_debug.csv"
-    with open(debug_filename, "w") as debug_file:
-        debug_writer = csv.writer(
-            debug_file, delimiter=";", quotechar="|", quoting=csv.QUOTE_MINIMAL
-        )
-        for line, span in all_sensitives_spans:
-            debug_writer.writerow([line, span.text, span.label])
-
-
-def add_bool_arg(arg_parser, name, default=False):
-    var_name = name.replace("-", "_")
-    group = arg_parser.add_mutually_exclusive_group(required=False)
-    group.add_argument("--" + name, dest=var_name, action="store_true")
-    group.add_argument("--no-" + name, dest=var_name, action="store_false")
-    arg_parser.set_defaults(**{var_name: default})
+        doc.save(output_path)
 
 
 def get_lines(page) -> Sentence:
@@ -120,6 +101,14 @@ def _get_sensitive_span_by_line(
     span_by_line = [(line, span) for line, spans in span_list_by_line for span in spans]
 
     return span_by_line
+
+
+def add_bool_arg(arg_parser, name, default=False):
+    var_name = name.replace("-", "_")
+    group = arg_parser.add_mutually_exclusive_group(required=False)
+    group.add_argument("--" + name, dest=var_name, action="store_true")
+    group.add_argument("--no-" + name, dest=var_name, action="store_false")
+    arg_parser.set_defaults(**{var_name: default})
 
 
 if __name__ == "__main__":
