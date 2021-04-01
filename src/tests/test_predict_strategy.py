@@ -18,9 +18,7 @@ def test_predict_flair_strategy():
 
 
 def test_predict_spacy_strategy():
-    strategy = ChainPredictStrategy(
-        [SpacyPredictStrategy(), PhoneNumberPredictStrategy(region="FR")]
-    )
+    strategy = ChainPredictStrategy([SpacyPredictStrategy(), PhoneNumberPredictStrategy(region="FR")])
     sensitive = strategy.predict(
         "Jeanne DOMERGUE  20 ans, Nationalité française  domergue.jeanne@gmail.com  6, place des peupliers "
         "93200 Saint-Denis",
@@ -35,9 +33,7 @@ def test_predict_spacy_strategy():
     assert Span("24 ans", "AGE") in sensitive
     assert Span("+33 6 98 86 08 71", "TEL") in sensitive
 
-    sensitive = strategy.predict(
-        "110 rue du Faubourg Saint-Pierre   marié   +33689888071"
-    )
+    sensitive = strategy.predict("110 rue du Faubourg Saint-Pierre   marié   +33689888071")
     assert Span("marié", "FAM") in sensitive
     assert Span("+33689888071", "TEL") in sensitive
 

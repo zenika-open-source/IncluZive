@@ -14,9 +14,7 @@ class Sentence:
     page_num: int
 
 
-def write_style_frame(
-        all_sensitives_spans: List[Tuple[Sentence, Union[None, Span]]], dest
-):
+def write_style_frame(all_sensitives_spans: List[Tuple[Sentence, Union[None, Span]]], dest):
     df = pd.DataFrame(
         {
             "Text": [sentence.text for sentence, _ in all_sensitives_spans],
@@ -25,12 +23,8 @@ def write_style_frame(
             "y1": [sentence.rect[1] for sentence, _ in all_sensitives_spans],
             "x2": [sentence.rect[2] for sentence, _ in all_sensitives_spans],
             "y2": [sentence.rect[3] for sentence, _ in all_sensitives_spans],
-            "Entity": [
-                ("" if not span else span.text) for _, span in all_sensitives_spans
-            ],
-            "Label": [
-                ("" if not span else span.label) for _, span in all_sensitives_spans
-            ],
+            "Entity": [("" if not span else span.text) for _, span in all_sensitives_spans],
+            "Label": [("" if not span else span.label) for _, span in all_sensitives_spans],
         }
     )
     sf = StyleFrame(df)
@@ -41,11 +35,8 @@ def write_style_frame(
     sf.set_column_width(columns="Entity", width=adjusted_width)
 
     adjusted_width = (
-                         max(
-                             [len(span.label) for _, span in all_sensitives_spans if span is not None]
-                             + [len("Entity Label")]
-                         )
-                     ) * 1.1
+        max([len(span.label) for _, span in all_sensitives_spans if span is not None] + [len("Entity Label")])
+    ) * 1.1
     sf.set_column_width(columns="Label", width=adjusted_width)
 
     sf.set_column_width(columns="Text", width=100)
