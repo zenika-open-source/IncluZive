@@ -9,7 +9,7 @@ from src.predict_strategy import RegexPredictStrategy
         "https://regexsf101.com/r/wcSXsfEr/5/",
         "www.lala.com",
         "julien.wordpress.com",
-        "http:// julien.blogspot.fr"
+        "http:// julien.blogspot.fr",
     ],
 )
 def test_RegexPredictStrategy_URL(test_url):

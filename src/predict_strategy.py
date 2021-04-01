@@ -59,9 +59,7 @@ class SpacyPredictStrategy(PredictStrategy):
 
         self._matcher.add("mail", create_add_ent_fn("EMAIL"), [{"LIKE_EMAIL": True}])
         self._matcher.add("age", create_add_ent_fn("AGE"), [{}, {"ORTH": "ans"}])
-        self._matcher.add(
-            "familiale", create_add_ent_fn("FAM"), [{"TEXT": {"REGEX": "[Mm]arié(e?)"}}]
-        )
+        self._matcher.add("familiale", create_add_ent_fn("FAM"), [{"TEXT": {"REGEX": "[Mm]arié(e?)"}}])
 
     def predict(self, line: str) -> Iterator[Span]:
         doc = self._nlp(line)
@@ -111,16 +109,12 @@ PATTERN_STRATEGIES = [
         label="DATE",
     ),
     # extract_date
-    RegexPredictStrategy(
-        pattern=r"\d\s*\d{2}\s*\d{2}\s*\d{2}\s*\d{3}\s*\d{3}", label="NSEC"
-    ),  # extract_num_so_sec
+    RegexPredictStrategy(pattern=r"\d\s*\d{2}\s*\d{2}\s*\d{2}\s*\d{3}\s*\d{3}", label="NSEC"),  # extract_num_so_sec
     # RegexPredictStrategy(pattern=r' ([0-9][0-9][0-9][0-9] )|(\s*\d{4}-\d{4}\s*)', label=),  # extract_single_date
     RegexPredictStrategy(
         pattern=r"\d\.*\,*?\d*?\s?\s?(ans|ANS|an\b|AN\b|mois\b|MOIS\b|années\b)(\set demi)*", label="PERIODE"
     ),  # extract_time_period
-    RegexPredictStrategy(
-        pattern=r"([0-99]+?)\s*enfants", label="CHILDREN"
-    ),  # extract_enfants
+    RegexPredictStrategy(pattern=r"([0-99]+?)\s*enfants", label="CHILDREN"),  # extract_enfants
     RegexPredictStrategy(
         pattern=r"[Mm]arié(e?)|[Pp]acsé(e?)|[Dd]ivorcé(e?)|[Ss]éparé(e?)|[Cc]élibataire",
         label="FAMILY_STATUS",
@@ -154,9 +148,7 @@ STRATEGY_FLAIR = ChainPredictStrategy(LANG_PATTERN_STRATEGIES + [FlairPredictStr
 
 class FaceImagePredictor:
     def __init__(self):
-        self._face_cascade = cv2.CascadeClassifier(
-            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-        )
+        self._face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
     def predict(self, image: bytes) -> bool:
         image_arr = np.frombuffer(image, dtype=np.uint8)

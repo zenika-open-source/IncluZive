@@ -21,15 +21,16 @@ def build_sentence(text: str) -> Sentence:
 
 test_data = [
     ([build_sentence("line A")], [], [(build_sentence("line A"), None)]),
-    ([build_sentence("line A"), build_sentence("line B")], [],
-     [(build_sentence("line A"), None), (build_sentence("line B"), None)]),
+    (
+        [build_sentence("line A"), build_sentence("line B")],
+        [],
+        [(build_sentence("line A"), None), (build_sentence("line B"), None)],
+    ),
     ([build_sentence("line A")], [Span("span1", "label1")], [(build_sentence("line A"), Span("span1", "label1"))]),
 ]
 
 
 @pytest.mark.parametrize("lines,spans,expected", test_data)
 def test_get_sensitive_span_by_line(lines, spans, expected):
-    span_by_line = _get_sensitive_span_by_line(
-        lines, FakePredictionStrategy(predictions=spans)
-    )
+    span_by_line = _get_sensitive_span_by_line(lines, FakePredictionStrategy(predictions=spans))
     assert span_by_line == expected

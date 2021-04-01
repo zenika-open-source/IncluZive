@@ -37,16 +37,8 @@ def main(src, output_path, apply_redaction=False, redaction_with_annotation=True
             add_annotations(page, areas, redaction_with_annotation)
         all_sensitives_spans.extend(span_by_line)
 
-        image_blocks = [
-            block
-            for block in page.getText("dict")["blocks"]
-            if block["type"] == BLOCK_IMAGE
-        ]
-        face_image_boxes = [
-            block["bbox"]
-            for block in image_blocks
-            if face_image_predictor.predict(block["image"])
-        ]
+        image_blocks = [block for block in page.getText("dict")["blocks"] if block["type"] == BLOCK_IMAGE]
+        face_image_boxes = [block["bbox"] for block in image_blocks if face_image_predictor.predict(block["image"])]
         add_annotations(page, face_image_boxes, redaction_with_annotation)
 
     save_redacted_doc(doc, output_path, apply_redaction, redaction_with_annotation)
@@ -55,10 +47,7 @@ def main(src, output_path, apply_redaction=False, redaction_with_annotation=True
 
 def add_annotations(page, boxes, redaction_with_annotation):
     if redaction_with_annotation:
-        [
-            page.drawRect(rect, color=(0, 0, 0), fill=(1, 1, 1), overlay=True)
-            for rect in boxes
-        ]
+        [page.drawRect(rect, color=(0, 0, 0), fill=(1, 1, 1), overlay=True) for rect in boxes]
     else:
         [page.addRedactAnnot(rect, fill=(1, 1, 1), cross_out=False) for rect in boxes]
 
@@ -67,9 +56,7 @@ def save_redacted_doc(doc, output_path, apply_redaction, redaction_with_annotati
     if redaction_with_annotation and apply_redaction:
         new_doc = fitz.Document()
         for page in doc:
-            pix = page.getPixmap(
-                alpha=False, matrix=page_render_matrix
-            )  # render page to an image
+            pix = page.getPixmap(alpha=False, matrix=page_render_matrix)  # render page to an image
             new_page = new_doc.newPage(page.number)  # noqa
             new_page.insertImage(new_page.rect, pixmap=pix)
             # applying the redaction
@@ -91,13 +78,11 @@ def get_lines(page) -> Sentence:
 
 
 def _get_sensitive_span_by_line(
-        lines: List[Sentence], predict_strategy: PredictStrategy
+    lines: List[Sentence], predict_strategy: PredictStrategy
 ) -> List[Tuple[Sentence, Union[None, Span]]]:
     span_list_by_line = [(line, predict_strategy.list_predictions(line.text)) for line in lines]
 
-    span_list_by_line = map(
-        lambda x: (x[0], [None] if not x[1] else x[1]), span_list_by_line
-    )
+    span_list_by_line = map(lambda x: (x[0], [None] if not x[1] else x[1]), span_list_by_line)
     span_by_line = [(line, span) for line, spans in span_list_by_line for span in spans]
 
     return span_by_line
@@ -119,11 +104,7 @@ if __name__ == "__main__":
     add_bool_arg(parser, "redaction-with-annotation")
     args = parser.parse_args()
 
-    src_files = (
-        glob.glob(os.path.join(args.src, "*.pdf"))
-        if os.path.isdir(args.src)
-        else [args.src]
-    )
+    src_files = glob.glob(os.path.join(args.src, "*.pdf")) if os.path.isdir(args.src) else [args.src]
     dest_files = ["ano_" + path.basename(src) for src in src_files]
     dest_files = [os.path.join(args.dest, filename) for filename in dest_files]
 

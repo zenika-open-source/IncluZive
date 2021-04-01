@@ -1,5 +1,6 @@
 [flake8]
 max-line-length=120
+extend-ignore=E203
 per-file-ignores = 
     src/back/pdf_redactor.py : E701, E127, F821, E703
     src/back/example.py : E266

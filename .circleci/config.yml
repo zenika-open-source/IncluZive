@@ -29,6 +29,9 @@ jobs:
           name: Run static analysis
           command: flake8 src
       - run:
+          name: Check code format
+          command: black src --check
+      - run:
           name: Run tests
           command: pytest src
       - run:
