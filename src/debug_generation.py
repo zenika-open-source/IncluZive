@@ -1,10 +1,7 @@
 from dataclasses import dataclass
-from typing import List, Union, Tuple
+from typing import Tuple
 
-import pandas as pd
 from styleframe import StyleFrame, Styler
-
-from src.predict_strategy import Span
 
 
 @dataclass
@@ -14,39 +11,25 @@ class Sentence:
     page_num: int
 
 
-def write_style_frame(all_sensitives_spans: List[Tuple[Sentence, Union[None, Span]]], dest):
-    df = pd.DataFrame(
-        {
-            "Text": [sentence.text for sentence, _ in all_sensitives_spans],
-            "page": [sentence.page_num for sentence, _ in all_sensitives_spans],
-            "x1": [sentence.rect[0] for sentence, _ in all_sensitives_spans],
-            "y1": [sentence.rect[1] for sentence, _ in all_sensitives_spans],
-            "x2": [sentence.rect[2] for sentence, _ in all_sensitives_spans],
-            "y2": [sentence.rect[3] for sentence, _ in all_sensitives_spans],
-            "Entity": [("" if not span else span.text) for _, span in all_sensitives_spans],
-            "Label": [("" if not span else span.label) for _, span in all_sensitives_spans],
-        }
-    )
-    sf = StyleFrame(df)
+def write_style_frame(data_frame, dest):
+    sf = StyleFrame(data_frame)
     header_style = Styler(bold=True, font_size=18)
     sf.apply_headers_style(styler_obj=header_style)
 
-    adjusted_width = max([len(span.text) for _, span in all_sensitives_spans if span is not None]) * 1.1
+    # adjusted_width = max([len(span.text) for _, span in all_sensitives_spans if span is not None]) * 1.1
+    adjusted_width = data_frame["Entity"].fillna("").apply(len).max() * 1.1
     sf.set_column_width(columns="Entity", width=adjusted_width)
 
-    adjusted_width = (
-        max([len(span.label) for _, span in all_sensitives_spans if span is not None] + [len("Entity Label")])
-    ) * 1.1
+    adjusted_width = data_frame["Label"].fillna("").apply(len).max() * 2.0
     sf.set_column_width(columns="Label", width=adjusted_width)
 
     sf.set_column_width(columns="Text", width=100)
     sf.set_row_height(rows=[1], height=25)
+    rows_with_large_text = [
+        (idx + 2) for idx, tuples in enumerate(data_frame.itertuples(index=False)) if len(tuples.Text) > 80
+    ]
     sf.set_row_height(
-        rows=[
-            (idx + 2)
-            for idx, sentence_span_tuple in enumerate(all_sensitives_spans)
-            if len(sentence_span_tuple[0].text) > 115
-        ],
+        rows=rows_with_large_text,
         height=50,
     )
 
