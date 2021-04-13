@@ -5,6 +5,7 @@ from os import path
 from typing import List, Union, Tuple
 
 import fitz
+import pandas as pd
 
 from src.debug_generation import write_style_frame, Sentence
 from src.predict_strategy import (
@@ -33,16 +34,34 @@ def main(src, output_path, apply_redaction=False, redaction_with_annotation=True
         for _, span in span_by_line:
             if not span:
                 continue
-            areas = page.searchFor(span.text)
+            areas = page.searchFor(span.text)  # noqa
             add_annotations(page, areas, redaction_with_annotation)
         all_sensitives_spans.extend(span_by_line)
 
-        image_blocks = [block for block in page.getText("dict")["blocks"] if block["type"] == BLOCK_IMAGE]
+        image_blocks = [block for block in page.getText("dict")["blocks"] if block["type"] == BLOCK_IMAGE]  # noqa
         face_image_boxes = [block["bbox"] for block in image_blocks if face_image_predictor.predict(block["image"])]
         add_annotations(page, face_image_boxes, redaction_with_annotation)
 
     save_redacted_doc(doc, output_path, apply_redaction, redaction_with_annotation)
-    write_style_frame(all_sensitives_spans, output_path.replace("pdf", "xlsx"))
+
+    df = to_data_frame(all_sensitives_spans)
+    write_style_frame(df, output_path.replace("pdf", "xlsx"))
+
+
+def to_data_frame(all_sensitives_spans: List[Tuple[Sentence, Union[None, Span]]]):
+    df = pd.DataFrame(
+        {
+            "Text": [sentence.text for sentence, _ in all_sensitives_spans],
+            "page": [sentence.page_num for sentence, _ in all_sensitives_spans],
+            "x1": [sentence.rect[0] for sentence, _ in all_sensitives_spans],
+            "y1": [sentence.rect[1] for sentence, _ in all_sensitives_spans],
+            "x2": [sentence.rect[2] for sentence, _ in all_sensitives_spans],
+            "y2": [sentence.rect[3] for sentence, _ in all_sensitives_spans],
+            "Entity": [("" if not span else span.text) for _, span in all_sensitives_spans],
+            "Label": [("" if not span else span.label) for _, span in all_sensitives_spans],
+        }
+    )
+    return df
 
 
 def add_annotations(page, boxes, redaction_with_annotation):
