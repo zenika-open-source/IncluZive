@@ -43,6 +43,13 @@ Velay S 6 ans d'expérience 	0	28,0065994262695	76,0113220214844	565,97650146484
                 ["Velay S 6 ans d'expérience ", [("Velay S", "PER"), ("6 ans", "PERIODE")]],
             ],
         ),
+        (
+            """
+Text	page	x1	y1	x2	y2	Entity	Label
+Velay S 6 ans d'expérience\t\t\t\t\t\t\t
+""",
+            [],
+        ),
     ],
 )
 def test_load_annotations(table, annotations):

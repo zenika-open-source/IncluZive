@@ -23,9 +23,3 @@ import src.dataset as dataset
 )
 def test_annotation_to_iob_tags(text: str, annotations: List[Tuple[str, str]], iob_tags: List[Tuple[str, str]]):
     assert dataset.annotation_to_bio_tags(text, annotations) == iob_tags
-
-
-# TODO list:
-#  - read each workbook --> obtains list of text lines with annotations
-#  - for each annotated text line, get BIO-annotated NER tags
-#  - from all the BIO-annotated NER tags, get CoNLL column-formatted

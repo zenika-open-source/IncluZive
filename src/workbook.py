@@ -41,7 +41,8 @@ def write_style_frame(data_frame, dest):
 def load_annotations(sheet: Worksheet) -> List[Tuple[str, List[Tuple[str, str]]]]:
     data_frame = pd.DataFrame(columns=["Text", "Entity", "Label"])
     for row in sheet.iter_rows(min_row=2, values_only=True):
-        data_frame = data_frame.append({"Text": row[0], "Entity": row[6], "Label": row[7]}, ignore_index=True)
+        if row[6]:
+            data_frame = data_frame.append({"Text": row[0], "Entity": row[6], "Label": row[7]}, ignore_index=True)
 
     data_frame.drop_duplicates(inplace=True)
     grouped = data_frame.groupby(by="Text")
