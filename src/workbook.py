@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import Tuple, List, Iterator
+from typing import Tuple, List
 
+import pandas as pd
 from openpyxl.worksheet.worksheet import Worksheet
 from styleframe import StyleFrame, Styler
 
@@ -37,5 +38,11 @@ def write_style_frame(data_frame, dest):
     sf.to_excel(dest).save()
 
 
-def load_annotations(sheet: Worksheet) -> Iterator[Tuple[str, List[Tuple[str, str]]]]:
-    pass
+def load_annotations(sheet: Worksheet) -> List[Tuple[str, List[Tuple[str, str]]]]:
+    data_frame = pd.DataFrame(columns=["Text", "Entity", "Label"])
+    for row in sheet.iter_rows(min_row=2, values_only=True):
+        data_frame = data_frame.append({"Text": row[0], "Entity": row[6], "Label": row[7]}, ignore_index=True)
+
+    data_frame.drop_duplicates(inplace=True)
+    grouped = data_frame.groupby(by="Text")
+    return [[text, [(row[1], row[2]) for row in group.itertuples(index=False)]] for text, group in grouped]
