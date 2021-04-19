@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, List, Iterator
 
+from openpyxl.worksheet.worksheet import Worksheet
 from styleframe import StyleFrame, Styler
 
 
@@ -34,3 +35,7 @@ def write_style_frame(data_frame, dest):
     )
 
     sf.to_excel(dest).save()
+
+
+def load_annotations(sheet: Worksheet) -> Iterator[Tuple[str, List[Tuple[str, str]]]]:
+    pass

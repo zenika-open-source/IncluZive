@@ -25,17 +25,17 @@ def mark_sentence(s, match_list):
     """
     Marks all the entities in the sentence as per the BIO scheme.
     """
-    word_dict = {word: 'O' for word in s.split()}
+    word_dict = {word: "O" for word in s.split()}
 
     for start, end, e_type in match_list:
         temp_str = s[start:end]
         tmp_list = temp_str.split()
         if len(tmp_list) > 1:
-            word_dict[tmp_list[0]] = 'B-' + e_type
+            word_dict[tmp_list[0]] = "B-" + e_type
             for w in tmp_list[1:]:
-                word_dict[w] = 'I-' + e_type
+                word_dict[w] = "I-" + e_type
         else:
-            word_dict[temp_str] = 'B-' + e_type
+            word_dict[temp_str] = "B-" + e_type
     return word_dict
 
 
@@ -43,8 +43,34 @@ def clean(text):
     """
     Just a helper function to add a space before the punctuations for better tokenization
     """
-    filters = ["!", "#", "$", "%", "&", "(", ")", "/", "*", ".", ":", ";", "<", "=", ">", "?", "@", "[",
-               "\\", "]", "_", "`", "{", "}", "~", "'"]
+    filters = [
+        "!",
+        "#",
+        "$",
+        "%",
+        "&",
+        "(",
+        ")",
+        "/",
+        "*",
+        ".",
+        ":",
+        ";",
+        "<",
+        "=",
+        ">",
+        "?",
+        "@",
+        "[",
+        "\\",
+        "]",
+        "_",
+        "`",
+        "{",
+        "}",
+        "~",
+        "'",
+    ]
     for i in text:
         if i in filters:
             text = text.replace(i, " " + i)
@@ -56,7 +82,7 @@ def create_data(df, filepath):
     """
     The function responsible for the creation of data in the said format.
     """
-    with open(filepath, 'w') as f:
+    with open(filepath, "w") as f:
         for text, annotation in zip(df.text, df.annotation):
             text = clean(text)
             match_list = []
@@ -67,20 +93,24 @@ def create_data(df, filepath):
             d = mark_sentence(text, match_list)
 
             for i in d.keys():
-                f.writelines(i + ' ' + d[i] + '\n')
-            f.writelines('\n')
+                f.writelines(i + " " + d[i] + "\n")
+            f.writelines("\n")
 
 
 def main():
-    data = pd.DataFrame([["Horses are too tall and they pretend to care about your feelings", [("Horses", "ANIMAL")]],
-                         ["Who is Shaka Khan?", [("Shaka Khan", "PERSON")]],
-                         ["I like London and Berlin.", [("London", "LOCATION"), ("Berlin", "LOCATION")]],
-                         ["There is a banyan tree in the courtyard", [("banyan tree", "TREE")]]],
-                        columns=['text', 'annotation'])
+    data = pd.DataFrame(
+        [
+            ["Horses are too tall and they pretend to care about your feelings", [("Horses", "ANIMAL")]],
+            ["Who is Shaka Khan?", [("Shaka Khan", "PERSON")]],
+            ["I like London and Berlin.", [("London", "LOCATION"), ("Berlin", "LOCATION")]],
+            ["There is a banyan tree in the courtyard", [("banyan tree", "TREE")]],
+        ],
+        columns=["text", "annotation"],
+    )
 
-    filepath = 'train.txt'
+    filepath = "train.txt"
     create_data(data, filepath)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
