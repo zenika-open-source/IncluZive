@@ -2,7 +2,7 @@ from typing import Iterator
 
 import pytest
 
-from src.debug_generation import Sentence
+from src.workbook import Sentence
 from src.main import _get_sensitive_span_by_line
 from src.predict_strategy import PredictStrategy, Span
 

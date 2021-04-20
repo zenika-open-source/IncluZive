@@ -8,7 +8,7 @@ import pandas as pd
 from fitz import fitz, Rect
 from openpyxl import load_workbook, Workbook
 
-from src.debug_generation import write_style_frame
+from src.workbook import write_style_frame
 
 
 def main(input_document: str, input_workbook: str, output_workbook: str):
