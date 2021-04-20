@@ -41,8 +41,30 @@ jobs:
       - slack/notify:
           channel: G01EG6G03DX
           event: pass
-          template: basic_success_1
+          custom: |
+            {
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": ":white_check_mark:  Pass: $CIRCLE_USERNAME's build #<$CIRCLE_BUILD_URL|$CIRCLE_BUILD_NUM> of the branch <https://app.circleci.com/pipelines/github/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME?branch=$CIRCLE_BRANCH|$CIRCLE_BRANCH>"
+                        }
+                    }
+                ]
+            }
       - slack/notify:
           channel: G01EG6G03DX
           event: fail
-          template: basic_fail_1
+          custom: |
+            {
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": ":large_red_square: Failed: $CIRCLE_USERNAME's build #<$CIRCLE_BUILD_URL|$CIRCLE_BUILD_NUM> of the branch <https://app.circleci.com/pipelines/github/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME?branch=$CIRCLE_BRANCH|$CIRCLE_BRANCH>"
+                        }
+                    }
+                ]
+            }
