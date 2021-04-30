@@ -1,0 +1,13 @@
+stages:
+  pred_generation:
+    cmd: python src/main.py data/raw/cv/
+      data/pred
+    deps:
+    - data/raw/cv/
+    - src/
+  classification_report_generation:
+    cmd: make report
+    deps:
+    - Notebooks/EvaluationMetrics/Evaluation metrics.ipynb
+    - data/pred/
+    - data/raw/ground-truth/

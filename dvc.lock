@@ -1,0 +1,28 @@
+schema: '2.0'
+stages:
+  pred_generation:
+    cmd: python src/main.py data/raw/cv/
+      data/pred
+    deps:
+    - path: data/raw/cv/
+      md5: 3605fc544bc61f8a6340db3520bddde5.dir
+      size: 16522052
+      nfiles: 124
+    - path: src/
+      md5: 7ee3b09de2ff2dc0454364a7bdd3b9b3.dir
+      size: 157179
+      nfiles: 55
+  classification_report_generation:
+    cmd: make report
+    deps:
+    - path: Notebooks/EvaluationMetrics/Evaluation metrics.ipynb
+      md5: c94b8f0e8bb5450e092f5c91b94ea8b2
+      size: 92884
+    - path: data/pred/
+      md5: d822fad3a017d66de3082b3cae00d8f2.dir
+      size: 746784
+      nfiles: 62
+    - path: data/raw/ground-truth/
+      md5: 184b8782c1360246a5c87007290699b0.dir
+      size: 769771
+      nfiles: 125
