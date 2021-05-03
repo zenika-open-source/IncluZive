@@ -6,7 +6,7 @@ from typing import Tuple, List
 
 from openpyxl import load_workbook
 
-from src.workbook import load_annotations
+from workbook import load_annotations
 
 
 def annotation_to_bio_tags(text: str, annotations: List[Tuple[str, str]]) -> List[Tuple[str, str]]:

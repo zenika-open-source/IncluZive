@@ -1,7 +1,7 @@
 import pytest
 from openpyxl import Workbook
 
-from src.workbook import load_annotations
+from workbook import load_annotations
 
 
 @pytest.mark.parametrize(

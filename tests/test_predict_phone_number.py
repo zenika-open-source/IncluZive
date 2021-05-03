@@ -1,6 +1,6 @@
 import pytest
 
-from src.predict_strategy import Span, PhoneNumberPredictStrategy
+from predict_strategy import Span, PhoneNumberPredictStrategy
 
 
 @pytest.mark.parametrize(

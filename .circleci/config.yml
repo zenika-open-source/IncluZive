@@ -27,13 +27,13 @@ jobs:
           command: python -m spacy download fr_core_news_md
       - run:
           name: Run static analysis
-          command: flake8 src
+          command: flake8 src tests
       - run:
           name: Check code format
-          command: black src --check
+          command: black src tests --check
       - run:
           name: Run tests
-          command: pytest src
+          command: PYTHONPATH=src pytest tests
       - run:
           name: Output the max memory consumed
           command: cat /sys/fs/cgroup/memory/memory.max_usage_in_bytes
