@@ -1,20 +1,20 @@
                precision    recall  f1-score   support
 
       ADDRESS       0.00      0.00      0.00        30
-     CHILDREN       1.00      1.00      1.00         2
-         DATE       1.00      1.00      1.00        27
-        EMAIL       1.00      1.00      1.00        55
+     CHILDREN       1.00      0.50      0.67         2
+         DATE       1.00      0.96      0.98        27
+        EMAIL       1.00      0.96      0.98        55
 FAMILY_STATUS       1.00      1.00      1.00         3
          LANG       1.00      1.00      1.00        11
-          LOC       0.52      0.55      0.53       146
-            O       0.01      0.02      0.01        95
+          LOC       0.53      0.55      0.54       146
+            O       0.01      0.02      0.01        89
       ORG_ENS       0.00      0.00      0.00        61
-          PER       0.65      0.62      0.64        77
+          PER       0.66      0.60      0.63        77
       PERIODE       1.00      1.00      1.00        55
-          TEL       1.00      0.97      0.99        40
-          URL       1.00      0.96      0.98        51
+          TEL       1.00      0.93      0.96        40
+          URL       1.00      0.92      0.96        51
 
-     accuracy                           0.57       653
-    macro avg       0.71      0.70      0.70       653
- weighted avg       0.57      0.57      0.57       653
+     accuracy                           0.56       647
+    macro avg       0.71      0.65      0.67       647
+ weighted avg       0.58      0.56      0.57       647
 
