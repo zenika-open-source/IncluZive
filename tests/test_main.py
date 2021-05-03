@@ -2,9 +2,9 @@ from typing import Iterator
 
 import pytest
 
-from src.workbook import Sentence
-from src.main import _get_sensitive_span_by_line
-from src.predict_strategy import PredictStrategy, Span
+from workbook import Sentence
+from main import _get_sensitive_span_by_line
+from predict_strategy import PredictStrategy, Span
 
 
 class FakePredictionStrategy(PredictStrategy):

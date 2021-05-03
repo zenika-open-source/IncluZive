@@ -4,7 +4,7 @@
 
 import regex as re
 
-from src.back import pdf_redactor
+from back import pdf_redactor
 
 ## Set options.
 

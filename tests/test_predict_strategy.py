@@ -1,4 +1,4 @@
-from src.predict_strategy import (
+from predict_strategy import (
     FlairPredictStrategy,
     SpacyPredictStrategy,
     PredictStrategy,
