@@ -1,27 +1,37 @@
 schema: '2.0'
 stages:
-  pred_generation:
-    cmd: python src/main.py data/raw/cv/ data/pred
+  prediction:
+    cmd: mkdir -p data/pred && python src/core/main.py data/raw/cv/ data/pred
     deps:
-    - path: data/raw/cv/
+    - path: data/raw/cv
       md5: d15fbeb808e300bc63c8068bde9eb6cc.dir
       size: 16522052
       nfiles: 124
-    - path: src/
-      md5: bf6a60fb8eb6fe143320e2c6615bf683.dir
-      size: 157106
-      nfiles: 52
-  classification_report_generation:
-    cmd: make report
+    - path: src/core
+      md5: 68e4a0bdaac90b6d3568a176eb376ffb.dir
+      size: 22553
+      nfiles: 5
+    outs:
+    - path: data/pred
+      md5: 567898db4cafd513b0dc847596edc2a1.dir
+      size: 746748
+      nfiles: 62
+  evaluation:
+    cmd: papermill "Notebooks/EvaluationMetrics/Evaluation metrics.ipynb" ./build/reports/classification.ipynb
+      -p path Notebooks/EvaluationMetrics -p reports_path ./reports
     deps:
     - path: Notebooks/EvaluationMetrics/Evaluation metrics.ipynb
       md5: c94b8f0e8bb5450e092f5c91b94ea8b2
       size: 92884
     - path: data/pred/
-      md5: d021dfcc7fd940e52b2d521266094248.dir
-      size: 754860
-      nfiles: 125
+      md5: ffc8bcd8c2da45820bee0a547ef70a3d.dir
+      size: 746872
+      nfiles: 62
     - path: data/raw/ground-truth/
       md5: 32b561710d828ab00e566f56eb60d87d.dir
       size: 769771
       nfiles: 125
+    outs:
+    - path: reports/classification.txt
+      md5: 933114e38464f3d374720c8e569f8f7e
+      size: 938

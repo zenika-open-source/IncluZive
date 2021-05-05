@@ -1,13 +1,18 @@
 stages:
-  pred_generation:
-    cmd: python src/main.py data/raw/cv/
-      data/pred
+  prediction:
+    cmd: mkdir -p data/pred && python src/core/main.py data/raw/cv/ data/pred
     deps:
-    - data/raw/cv/
-    - src/
-  classification_report_generation:
-    cmd: make report
+    - data/raw/cv
+    - src/core
+    outs:
+    - data/pred
+  evaluation:
+    cmd: papermill "Notebooks/EvaluationMetrics/Evaluation metrics.ipynb" ./build/reports/classification.ipynb
+      -p path Notebooks/EvaluationMetrics -p reports_path ./reports
     deps:
     - Notebooks/EvaluationMetrics/Evaluation metrics.ipynb
     - data/pred/
     - data/raw/ground-truth/
+    metrics:
+    - reports/classification.txt:
+        cache: false
