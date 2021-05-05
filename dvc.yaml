@@ -8,7 +8,7 @@ stages:
     - data/pred
   evaluation:
     cmd: papermill "Notebooks/EvaluationMetrics/Evaluation metrics.ipynb" ./build/reports/classification.ipynb
-      -p path Notebooks/EvaluationMetrics -p reports_path ./reports
+      -p path Notebooks/EvaluationMetrics -p reports_path ./reports -k python3
     deps:
     - Notebooks/EvaluationMetrics/Evaluation metrics.ipynb
     - data/pred/

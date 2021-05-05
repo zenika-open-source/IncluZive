@@ -4,32 +4,32 @@ stages:
     cmd: mkdir -p data/pred && python src/core/main.py data/raw/cv/ data/pred
     deps:
     - path: data/raw/cv
-      md5: d15fbeb808e300bc63c8068bde9eb6cc.dir
-      size: 16522052
+      md5: 9d4d19058b457f8a45a4d5ccf6f0f9c6.dir
+      size: 16522042
       nfiles: 124
     - path: src/core
-      md5: 68e4a0bdaac90b6d3568a176eb376ffb.dir
-      size: 22553
+      md5: c9d9f6768b96dd923a6f1a9bbcaa5371.dir
+      size: 22515
       nfiles: 5
     outs:
     - path: data/pred
-      md5: 567898db4cafd513b0dc847596edc2a1.dir
-      size: 746748
+      md5: 7eac60195a1f5a55725837b758f2f89b.dir
+      size: 746438
       nfiles: 62
   evaluation:
     cmd: papermill "Notebooks/EvaluationMetrics/Evaluation metrics.ipynb" ./build/reports/classification.ipynb
-      -p path Notebooks/EvaluationMetrics -p reports_path ./reports
+      -p path Notebooks/EvaluationMetrics -p reports_path ./reports -k python3
     deps:
     - path: Notebooks/EvaluationMetrics/Evaluation metrics.ipynb
-      md5: c94b8f0e8bb5450e092f5c91b94ea8b2
-      size: 92884
+      md5: cf32ceda4b988427455aa31f46ce2ac4
+      size: 232308
     - path: data/pred/
-      md5: ffc8bcd8c2da45820bee0a547ef70a3d.dir
-      size: 746872
+      md5: 7eac60195a1f5a55725837b758f2f89b.dir
+      size: 746438
       nfiles: 62
     - path: data/raw/ground-truth/
-      md5: 32b561710d828ab00e566f56eb60d87d.dir
-      size: 769771
+      md5: aeb27e125d26f28773e83b00613bec45.dir
+      size: 769761
       nfiles: 125
     outs:
     - path: reports/classification.txt
