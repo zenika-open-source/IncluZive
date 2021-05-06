@@ -7,8 +7,8 @@ from typing import List, Union, Tuple
 import fitz
 import pandas as pd
 
-from workbook import write_style_frame, Sentence
-from predict_strategy import (
+from core.workbook import write_style_frame, Sentence
+from core.predict_strategy import (
     STRATEGY_FLAIR,
     FaceImagePredictor,
     Span,
