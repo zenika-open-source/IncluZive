@@ -1,6 +1,6 @@
 -r requirements.txt
 black==20.8b1
-dvc==2.0.18
+dvc==2.1.0
 flake8==3.9.0
 jupyterlab==3.0.14
 papermill==2.3.3
