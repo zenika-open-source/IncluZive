@@ -1,6 +1,6 @@
 import pytest
 
-from predict_strategy import RegexPredictStrategy
+from core.predict_strategy import RegexPredictStrategy
 
 
 @pytest.mark.parametrize(

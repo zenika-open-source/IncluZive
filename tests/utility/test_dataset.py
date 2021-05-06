@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 import pytest
 
-import dataset as dataset
+from utility import dataset as dataset
 
 
 @pytest.mark.parametrize(
