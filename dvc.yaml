@@ -1,6 +1,7 @@
 stages:
   prediction:
-    cmd: mkdir -p data/pred && python src/core/main.py data/raw/cv/ data/pred
+    cmd: mkdir -p data/pred && PYTHONPATH=src python src/core/main.py data/raw/cv/
+      data/pred && PYTHONPATH=src python -m pytest  -p no:warnings
     deps:
     - data/raw/cv
     - src/core
