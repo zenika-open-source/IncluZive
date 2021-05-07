@@ -1,0 +1,19 @@
+stages:
+  prediction:
+    cmd: mkdir -p data/pred && PYTHONPATH=src python src/core/main.py data/raw/cv/
+      data/pred && PYTHONPATH=src python -m pytest  -p no:warnings
+    deps:
+    - data/raw/cv
+    - src/core
+    outs:
+    - data/pred
+  evaluation:
+    cmd: papermill "Notebooks/EvaluationMetrics/Evaluation metrics.ipynb" ./build/reports/classification.ipynb
+      -p path Notebooks/EvaluationMetrics -p reports_path ./reports -k python3
+    deps:
+    - Notebooks/EvaluationMetrics/Evaluation metrics.ipynb
+    - data/pred/
+    - data/raw/ground-truth/
+    metrics:
+    - reports/classification.txt:
+        cache: false

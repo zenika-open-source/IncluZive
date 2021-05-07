@@ -1,3 +1,4 @@
+boto3==1.17.42
 flair==0.8.0.post1
 notebook==6.3.0
 opencv-contrib-python==4.5.1.48
