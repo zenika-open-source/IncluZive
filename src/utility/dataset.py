@@ -52,7 +52,11 @@ def create_train_test_dataset_from_workbooks(workbooks: List[str], train_file: s
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("src", help="Annotated workbooks")
+    parser.add_argument("dest", help="Destination directory")
+    parser.add_argument("--split", help="Split data", type=float)
     args = parser.parse_args()
 
     workbook_files = glob.glob(os.path.join(args.src, "*.xlsx")) if os.path.isdir(args.src) else [args.src]
-    create_train_test_dataset_from_workbooks(workbook_files, train_file="train.txt", test_file="test.txt")
+    create_train_test_dataset_from_workbooks(
+        workbook_files, train_file=args.dest + "/train.txt", test_file=args.dest + "/test.txt", split=args.split
+    )
