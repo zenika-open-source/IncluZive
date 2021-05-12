@@ -1,4 +1,11 @@
 stages:
+  preparation:
+    cmd: mkdir -p data/processed && PYTHONPATH=src python src/utility/dataset.py data/raw/ground-truth/
+      data/processed/ --split=0.2
+    deps:
+    - data/raw/ground-truth/
+    outs:
+    - data/processed
   prediction:
     cmd: mkdir -p data/pred && PYTHONPATH=src python src/core/main.py data/raw/cv/ data/pred
     deps:

@@ -1,5 +1,18 @@
 schema: '2.0'
 stages:
+  preparation:
+    cmd: mkdir -p data/processed && PYTHONPATH=src python src/utility/dataset.py data/raw/ground-truth/
+      data/processed/ --split=0.2
+    deps:
+    - path: data/raw/ground-truth/
+      md5: aeb27e125d26f28773e83b00613bec45.dir
+      size: 769761
+      nfiles: 125
+    outs:
+    - path: data/processed
+      md5: 7198f631cd38727bd79ac475753777b6.dir
+      size: 81016
+      nfiles: 2
   prediction:
     cmd: mkdir -p data/pred && PYTHONPATH=src python src/core/main.py data/raw/cv/
       data/pred
