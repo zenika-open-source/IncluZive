@@ -1,9 +1,4 @@
 outs:
-<<<<<<< HEAD
 - md5: 8d9cca2db295e1b09dc791cd1e29982c
   size: 14400
-=======
-- md5: 408b86642d1b3b8153ae14d8e3fcd0ec
-  size: 12717
->>>>>>> a0efde3 (Data split arguments update)
   path: test.txt

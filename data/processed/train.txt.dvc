@@ -1,9 +1,4 @@
 outs:
-<<<<<<< HEAD
 - md5: f016625f1d386d77ea15050e203002cc
   size: 68051
-=======
-- md5: bdb621fee046139c2789cb7ba6eb3ab2
-  size: 68491
->>>>>>> a0efde3 (Data split arguments update)
   path: train.txt
