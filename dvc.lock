@@ -29,9 +29,9 @@ stages:
       size: 746806
       nfiles: 62
     - path: data/raw/ground-truth/
-      md5: aeb27e125d26f28773e83b00613bec45.dir
+      md5: 1a714301a27d7bce2a0ca8969a31bf48.dir
       size: 769761
-      nfiles: 125
+      nfiles: 124
     outs:
     - path: reports/classification.txt
       md5: 2a5d22aa6050ba753a47aeb43446256a
