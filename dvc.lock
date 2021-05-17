@@ -2,7 +2,7 @@ schema: '2.0'
 stages:
   prediction:
     cmd: mkdir -p data/pred && PYTHONPATH=src python src/core/main.py data/raw/cv/
-      data/pred && PYTHONPATH=src python -m pytest  -p no:warnings
+      data/pred
     deps:
     - path: data/raw/cv
       md5: 9d4d19058b457f8a45a4d5ccf6f0f9c6.dir
@@ -10,11 +10,11 @@ stages:
       nfiles: 124
     - path: src/core
       md5: 9a01d0937dba680b030cbc4e287a8f82.dir
-      size: 28677
+      size: 12882
       nfiles: 4
     outs:
     - path: data/pred
-      md5: fdbd60411970a7c3601bef53e3e562e2.dir
+      md5: eb45950d14c4ba3ee40881badb4fa3d5.dir
       size: 746748
       nfiles: 62
   evaluation:
@@ -25,13 +25,13 @@ stages:
       md5: cf32ceda4b988427455aa31f46ce2ac4
       size: 232308
     - path: data/pred/
-      md5: fdbd60411970a7c3601bef53e3e562e2.dir
+      md5: eb45950d14c4ba3ee40881badb4fa3d5.dir
       size: 746748
       nfiles: 62
     - path: data/raw/ground-truth/
-      md5: aeb27e125d26f28773e83b00613bec45.dir
-      size: 769761
-      nfiles: 125
+      md5: 1a714301a27d7bce2a0ca8969a31bf48.dir
+      size: 769754
+      nfiles: 124
     outs:
     - path: reports/classification.txt
       md5: 933114e38464f3d374720c8e569f8f7e
