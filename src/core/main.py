@@ -9,7 +9,7 @@ import pandas as pd
 
 from core.workbook import write_style_frame, Sentence
 from core.predict_strategy import (
-    STRATEGY_FLAIR,
+    STRATEGY,
     FaceImagePredictor,
     Span,
     PredictStrategy,
@@ -30,7 +30,7 @@ def main(src, output_path, apply_redaction=False, redaction_with_annotation=True
     for page in doc:
         page.wrap_contents()
         lines = get_lines(page)
-        span_by_line = _get_sensitive_span_by_line(lines, STRATEGY_FLAIR)
+        span_by_line = _get_sensitive_span_by_line(lines, STRATEGY)
         for _, span in span_by_line:
             if not span:
                 continue
