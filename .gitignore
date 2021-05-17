@@ -30,12 +30,6 @@ data/**/*.docx
 data/**/*.doc
 data/**/*.DOC
 
-CV_result/**/*.pdf
-CV_result/**/*.csv
-CV_result/**/*.docx
-CV_result/**/*.doc
-CV_result/**/*.DOC
-
 # .DS_store
 .DS_store
 
