@@ -9,7 +9,7 @@ import pandas as pd
 
 from core.workbook import write_style_frame, Sentence
 from core.predict_strategy import (
-    STRATEGY_FLAIR,
+    STRATEGY,
     FaceImagePredictor,
     Span,
     PredictStrategy,
@@ -30,7 +30,7 @@ def main(src, output_path, apply_redaction=False, redaction_with_annotation=True
     for page in doc:
         page.wrap_contents()
         lines = get_lines(page)
-        span_by_line = _get_sensitive_span_by_line(lines, STRATEGY_FLAIR)
+        span_by_line = _get_sensitive_span_by_line(lines, STRATEGY)
         for _, span in span_by_line:
             if not span:
                 continue
@@ -41,8 +41,6 @@ def main(src, output_path, apply_redaction=False, redaction_with_annotation=True
         image_blocks = [block for block in page.getText("dict")["blocks"] if block["type"] == BLOCK_IMAGE]  # noqa
         face_image_boxes = [block["bbox"] for block in image_blocks if face_image_predictor.predict(block["image"])]
         add_annotations(page, face_image_boxes, redaction_with_annotation)
-
-    # save_redacted_doc(doc, output_path, apply_redaction, redaction_with_annotation)
 
     df = to_data_frame(all_sensitives_spans)
     write_style_frame(df, output_path.replace("pdf", "xlsx"))

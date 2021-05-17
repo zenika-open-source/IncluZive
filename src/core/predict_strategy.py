@@ -10,8 +10,7 @@ import numpy as np
 import spacy
 from flair.data import Sentence
 from flair.models import SequenceTagger
-from spacy.matcher import Matcher
-from spacy.tokens import Span as SpacySpan
+from spacy.pipeline import EntityRuler
 
 
 @dataclass
@@ -21,6 +20,8 @@ class Span:
 
 
 class PredictStrategy(ABC):
+    spacy_entities_list = []
+
     @abstractmethod
     def predict(self, lines: str) -> Iterator[Span]:
         pass
@@ -40,35 +41,53 @@ class FlairPredictStrategy(PredictStrategy):
         for entity in sentence.get_spans("ner"):
             for word in LANG_PATTERN_STRATEGIES[0].predict(str((entity[0]))):
                 self.lang_list.append(word.text)
-            if entity.tag in ["PER", "LOC"] and entity.score > 0.7 and entity.text not in self.lang_list:
+            if (
+                entity.tag in ["PER", "LOC"]
+                and entity.score > 0.7
+                and entity.text not in self.lang_list
+                and not (any(entity.text in s for s in self.spacy_entities_list))
+            ):
                 yield Span(entity.to_original_text(), entity.tag)
 
 
 class SpacyPredictStrategy(PredictStrategy):
     def __init__(self):
         self._nlp = spacy.load("fr_core_news_md")
-        self._matcher = Matcher(self._nlp.vocab)
-
-        def create_add_ent_fn(ent_label):
-            def _add_ent(matcher, doc, i, matches):  # noqa
-                match_id, start, end = matches[i]
-                entity = SpacySpan(doc, start, end, label=ent_label)
-                doc.ents += (entity,)
-
-            return _add_ent
-
-        self._matcher.add("mail", create_add_ent_fn("EMAIL"), [{"LIKE_EMAIL": True}])
-        self._matcher.add("age", create_add_ent_fn("AGE"), [{}, {"ORTH": "ans"}])
-        self._matcher.add("familiale", create_add_ent_fn("FAM"), [{"TEXT": {"REGEX": "[Mm]arié(e?)"}}])
+        # self._matcher = Matcher(self._nlp.vocab)
+        self.ruler = EntityRuler(self._nlp, overwrite_ents=True)
+        self.adrs_prefix = "^[Rr]ue|^[Pp]lace|^[Cc]hemin|^[Pp]lace|^[Aa]v$|^[Aa]venue|^[Ii]mpasse"
+        self.org_prefix = "^[EÉé]cole|^[Uu]niversité|^[Pp]olytech|^UNIVERSITÉ|^ECOLE|^Grandes Écoles"
+        self.org_prefix_2 = "^ENI|^INSA|^I.U.T|^IUT|^I.U.P|^IUP"
+        self.pattern = [
+            {
+                "label": "ADDRESS",
+                "pattern": [
+                    {"TEXT": {"REGEX": self.adrs_prefix}},
+                    {"TEXT": {"REGEX": "de|du|aux"}, "OP": "?"},
+                    {"ENT_TYPE": {"IN": ["PER", "LOC", "ORG"]}, "OP": "+"},
+                ],
+            },
+            {
+                "label": "ORG_ENS",
+                "pattern": [
+                    {"TEXT": {"REGEX": self.org_prefix + "|" + self.org_prefix_2}},
+                    {"TEXT": {"REGEX": "de"}, "OP": "?"},
+                    {"ENT_TYPE": {"IN": ["PER", "LOC", "MISC", "ORG"]}, "OP": "+"},
+                    {"TEXT": {"REGEX": "-"}, "OP": "?"},
+                    {"ENT_TYPE": {"IN": ["LOC", "MISC"]}, "OP": "*"},
+                    {"TEXT": {"REGEX": "D’|de|et"}, "OP": "?"},
+                    {"ENT_TYPE": {"IN": ["PER", "LOC", "ORG"]}, "OP": "*"},
+                ],
+            },
+        ]
+        self.ruler.add_patterns(self.pattern)
+        self._nlp.add_pipe(self.ruler)
 
     def predict(self, line: str) -> Iterator[Span]:
         doc = self._nlp(line)
-        try:
-            _ = self._matcher(doc)
-        except ValueError as error:
-            print(error)
         for ent in doc.ents:
-            if ent.label_ in ["PER", "EMAIL", "TEL", "AGE", "FAM"]:
+            if ent.label_ in ["ADDRESS", "ORG_ENS"]:
+                self.spacy_entities_list.append(ent.text)
                 yield Span(ent.text, ent.label_)
 
 
@@ -143,7 +162,9 @@ LANG_PATTERN_STRATEGIES = [
         label="LANG",
     ),
 ]
-STRATEGY_FLAIR = ChainPredictStrategy(LANG_PATTERN_STRATEGIES + [FlairPredictStrategy()] + PATTERN_STRATEGIES)
+STRATEGY = ChainPredictStrategy(
+    LANG_PATTERN_STRATEGIES + PATTERN_STRATEGIES + [SpacyPredictStrategy(), FlairPredictStrategy()]
+)
 
 
 class FaceImagePredictor:
