@@ -34,6 +34,7 @@ class FlairPredictStrategy(PredictStrategy):
     def __init__(self):
         self._model = SequenceTagger.load("fr-ner")
         self.lang_list = []
+        self.skills_list = ["Jenkins", "Docker", "Newman", "Kafka"]
 
     def predict(self, line: str) -> Iterator[Span]:
         sentence = Sentence(line)
@@ -44,8 +45,8 @@ class FlairPredictStrategy(PredictStrategy):
             if (
                 entity.tag in ["PER", "LOC"]
                 and entity.score > 0.7
-                and entity.text not in self.lang_list
                 and not (any(entity.text in s for s in self.spacy_entities_list))
+                and entity.text not in self.lang_list + self.skills_list
             ):
                 yield Span(entity.to_original_text(), entity.tag)
 
