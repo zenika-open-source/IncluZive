@@ -1,7 +1,7 @@
 stages:
   preparation:
     cmd: mkdir -p data/processed && PYTHONPATH=src python src/utility/dataset.py data/raw/ground-truth/
-      data/processed/ --split=0.2
+      data/processed/ --split=0.2 --seed=3
     deps:
     - data/raw/ground-truth/
     outs:
