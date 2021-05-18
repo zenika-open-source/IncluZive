@@ -1,12 +1,10 @@
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-import os.path
 from typing import Iterator
 
 import phonenumbers
 import cv2
-import json
 import numpy as np
 
 import spacy
@@ -36,9 +34,7 @@ class FlairPredictStrategy(PredictStrategy):
     def __init__(self):
         self._model = SequenceTagger.load("fr-ner")
         self.lang_list = []
-        self.f = open(os.path.dirname(__file__) + "/../../skills_list.json")
-        self.data = json.load(self.f)
-        self.f.close()
+        self.skills_list = ["Jenkins", "Docker", "Newman", "Kafka"]
 
     def predict(self, line: str) -> Iterator[Span]:
         sentence = Sentence(line)
@@ -50,7 +46,7 @@ class FlairPredictStrategy(PredictStrategy):
                 entity.tag in ["PER", "LOC"]
                 and entity.score > 0.7
                 and not (any(entity.text in s for s in self.spacy_entities_list))
-                and entity.text not in self.lang_list + self.data["skills"]
+                and entity.text not in self.lang_list + self.skills_list
             ):
                 yield Span(entity.to_original_text(), entity.tag)
 
