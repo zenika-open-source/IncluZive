@@ -45,7 +45,7 @@ def create_train_test_dataset_from_workbooks(workbooks: List[str], train_file: s
         file.writelines(lines)
 
     with open(test_file, "w") as file:
-        lines = (f"{token} {bio_tag}" if token else "\n" for token, bio_tag in test_bio_tags)
+        lines = (f"{token} {bio_tag}\n" if token else "\n" for token, bio_tag in test_bio_tags)
         file.writelines(lines)
 
 
