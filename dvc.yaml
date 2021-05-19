@@ -4,6 +4,8 @@ stages:
       data/processed/ --split=0.2 --seed=3
     deps:
     - data/raw/ground-truth/
+    - src/utility/dataset.py
+    - src/core
     outs:
     - data/processed
   prediction:
