@@ -2,29 +2,27 @@
 Une solution générique qui, acceptant une source de donnée, reconnaîtrait les données sensibles ou à caractère personnelle en utilisant un système intelligent, et appliquerait des techniques d'anonymisation robustes.
 
 ## Usage
+### User mode
+To run the main script (in order to anonymize a resume): PYTHONPATH=src python src/core/main.py <input_file_name/input_folder_name> <output_folder_name>
+
+### Dev mode
+To run tests: PYTHONPATH=src python -m pytest -p no:warnings
+
 
 ## Roadmap
 
 ## Prerequisites
-Python 3.7.9
-Jupyter Notebook 6.1.5
+Python 3.8.8
+
+Jupyter Notebook 6.3.0
 
 ## Requirements
-1) Install project requirements via command: pip install -r Requirements.txt
-2) Install **small** sized english corpus via: python -m spacy download en_core_web_sm
+### User mode
+1) Install project requirements via command: pip install -r requirements.txt
+2) Install **medium** sized french corpus via: python -m spacy download fr_core_news_md
 
-   Install **medium** sized english corpus via: python -m spacy download en_core_web_md
-   
-   Install **large** sized english corpus via: python -m spacy download en_core_web_lg
+### Dev mode
+Install project dev requirements via command: pip install -r requirements-dev.txt
 
-   Install **small** sized french corpus via: python -m spacy download fr_core_news_sm
-   
-   Install **medium** sized french corpus via: python -m spacy download fr_core_news_md
-   
-   Install **large** sized french corpus via: python -m spacy download fr_core_news_lg
-3) Install **Flair** for Windows: pytorch torchvision torchaudio cudatoolkit=11.0 -c pytorch
-
-   Install **Flair** for MAcOS: conda install pytorch torchvision torchaudio -c pytorch
-4) Install Visual C++ 14.0
 
 ## Licence
