@@ -1,13 +1,11 @@
 import argparse
-import glob
-import os
-from os import path
+import sys
 from typing import List, Union, Tuple
 
 import fitz
 import pandas as pd
 
-from core.workbook import write_style_frame, Sentence
+from core.workbook import Sentence
 from core.predict_strategy import (
     STRATEGY,
     FaceImagePredictor,
@@ -24,9 +22,9 @@ BLOCK_IMAGE = 1
 face_image_predictor = FaceImagePredictor()
 
 
-def main(src, output_path, apply_redaction=False, redaction_with_annotation=True):
+def main(src, apply_redaction=False, redaction_with_annotation=True):
     all_sensitives_spans = []
-    doc = fitz.Document(src)
+    doc = fitz.Document(stream=src, filetype="pdf")
     for page in doc:
         page.wrap_contents()
         lines = get_lines(page)
@@ -42,8 +40,7 @@ def main(src, output_path, apply_redaction=False, redaction_with_annotation=True
         face_image_boxes = [block["bbox"] for block in image_blocks if face_image_predictor.predict(block["image"])]
         add_annotations(page, face_image_boxes, redaction_with_annotation)
 
-    df = to_data_frame(all_sensitives_spans)
-    write_style_frame(df, output_path.replace("pdf", "xlsx"))
+    save_redacted_doc(doc, apply_redaction, redaction_with_annotation)
 
 
 def to_data_frame(all_sensitives_spans: List[Tuple[Sentence, Union[None, Span]]]):
@@ -64,12 +61,12 @@ def to_data_frame(all_sensitives_spans: List[Tuple[Sentence, Union[None, Span]]]
 
 def add_annotations(page, boxes, redaction_with_annotation):
     if redaction_with_annotation:
-        [page.drawRect(rect, color=(0, 0, 0), fill=(1, 1, 1), overlay=True) for rect in boxes]
+        [page.drawRect(rect, color=(1, 1, 1), fill=(1, 1, 1), overlay=True) for rect in boxes]
     else:
-        [page.addRedactAnnot(rect, fill=(1, 1, 1), cross_out=False) for rect in boxes]
+        [page.addRedactAnnot(rect, fill=(0, 0, 0), cross_out=False) for rect in boxes]
 
 
-def save_redacted_doc(doc, output_path, apply_redaction, redaction_with_annotation):
+def save_redacted_doc(doc, apply_redaction, redaction_with_annotation):
     if redaction_with_annotation and apply_redaction:
         new_doc = fitz.Document()
         for page in doc:
@@ -78,12 +75,12 @@ def save_redacted_doc(doc, output_path, apply_redaction, redaction_with_annotati
             new_page.insertImage(new_page.rect, pixmap=pix)
             # applying the redaction
             # page.apply_redactions()
-        new_doc.save(output_path)
+        sys.stdout.buffer.write(new_doc.tobytes())
     else:
         if apply_redaction:
             for page in doc:
                 page.apply_redactions()
-        doc.save(output_path)
+        sys.stdout.buffer.write(doc.tobytes())
 
 
 def get_lines(page) -> Sentence:
@@ -105,7 +102,7 @@ def _get_sensitive_span_by_line(
     return span_by_line
 
 
-def add_bool_arg(arg_parser, name, default=False):
+def add_bool_arg(arg_parser, name, default=True):
     var_name = name.replace("-", "_")
     group = arg_parser.add_mutually_exclusive_group(required=False)
     group.add_argument("--" + name, dest=var_name, action="store_true")
@@ -115,15 +112,11 @@ def add_bool_arg(arg_parser, name, default=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("src", help="PDF source")
-    parser.add_argument("dest", help="PDF destination")
     add_bool_arg(parser, "apply-redaction")
     add_bool_arg(parser, "redaction-with-annotation")
     args = parser.parse_args()
 
-    src_files = glob.glob(os.path.join(args.src, "*.pdf")) if os.path.isdir(args.src) else [args.src]
-    dest_files = ["ano_" + path.basename(src) for src in src_files]
-    dest_files = [os.path.join(args.dest, filename) for filename in dest_files]
+    file = sys.stdin.buffer.read()
+    sys.stdin.reconfigure(encoding="utf-8", errors="ignore")
 
-    for src, dest in zip(src_files, dest_files):
-        main(src, dest, args.apply_redaction, args.redaction_with_annotation)
+    main(file, args.apply_redaction, args.redaction_with_annotation)
