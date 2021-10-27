@@ -145,7 +145,7 @@ PATTERN_STRATEGIES = [
     ),
     # extract_sexe
     # RegexPredictStrategy(pattern=r'((\s)(\()*(F)(\))*(\s))|((\s)(\()*(M)(\))*(\s))', label=),  # extract_sexe_abrev
-    PhoneNumberPredictStrategy(region="FR"),
+    # PhoneNumberPredictStrategy(region="FR"), # deanonymizing phone number for this branch [deanonimizing-phone-number]
     RegexPredictStrategy(
         pattern=r"(?i)\b((?:https?://\s?|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+"
         r"|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))",
