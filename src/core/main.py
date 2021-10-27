@@ -24,7 +24,7 @@ BLOCK_IMAGE = 1
 face_image_predictor = FaceImagePredictor()
 
 
-def main(src, output_path, apply_redaction=False, redaction_with_annotation=True):
+def main(src, output_path, apply_redaction=True, redaction_with_annotation=True):
     all_sensitives_spans = []
     doc = fitz.Document(src)
     for page in doc:
@@ -65,8 +65,9 @@ def to_data_frame(all_sensitives_spans: List[Tuple[Sentence, Union[None, Span]]]
 
 def add_annotations(page, boxes, redaction_with_annotation):
     if redaction_with_annotation:
-        [page.drawRect(rect, color=(0, 0, 0), fill=(1, 1, 1), overlay=True) for rect in boxes]
+        [page.drawRect(rect, color=(1, 1, 1), fill=(1, 1, 1), overlay=True) for rect in boxes]
     else:
+        [page.drawRect(rect, color=(1, 1, 1), fill=(1, 1, 1), overlay=True) for rect in boxes]
         [page.addRedactAnnot(rect, fill=(1, 1, 1), cross_out=False) for rect in boxes]
 
 
@@ -78,7 +79,7 @@ def save_redacted_doc(doc, output_path, apply_redaction, redaction_with_annotati
             new_page = new_doc.newPage(page.number)  # noqa
             new_page.insertImage(new_page.rect, pixmap=pix)
             # applying the redaction
-            # page.apply_redactions()
+            page.apply_redactions()
         new_doc.save(output_path)
     else:
         if apply_redaction:
@@ -127,4 +128,4 @@ if __name__ == "__main__":
     dest_files = [os.path.join(args.dest, filename) for filename in dest_files]
 
     for src, dest in zip(src_files, dest_files):
-        main(src, dest, args.apply_redaction, args.redaction_with_annotation)
+        main(src, dest, True, True)
