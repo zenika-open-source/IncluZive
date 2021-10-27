@@ -44,6 +44,7 @@ def main(src, output_path, apply_redaction=False, redaction_with_annotation=True
 
     df = to_data_frame(all_sensitives_spans)
     write_style_frame(df, output_path.replace("pdf", "xlsx"))
+    save_redacted_doc(doc, output_path, apply_redaction, redaction_with_annotation)
 
 
 def to_data_frame(all_sensitives_spans: List[Tuple[Sentence, Union[None, Span]]]):
